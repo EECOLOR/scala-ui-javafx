@@ -3,6 +3,7 @@
 	<name>uiFramework-javafx</name>
 	<comment></comment>
 	<projects>
+		<project>uiFramework</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

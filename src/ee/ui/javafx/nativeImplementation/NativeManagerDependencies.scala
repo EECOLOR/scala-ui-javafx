@@ -7,6 +7,7 @@ trait NativeManagerDependencies extends ee.ui.nativeImplementation.NativeManager
 
   implicit def windowManager = WindowManager
   implicit def stageManager = StageManager
+  implicit def sceneManager = SceneManager
 }
 
 object NativeManagerDependencies extends NativeManagerDependencies
@@ -17,4 +18,8 @@ object WindowManager extends NativeManager[nativeElements.Window, Window] {
 
 object StageManager extends NativeManager[nativeElements.Stage, Stage] {
   protected def createInstance(element: nativeElements.Stage) = new Stage(element)
+}
+
+object SceneManager extends NativeManager[nativeElements.Scene, Scene] {
+	protected def createInstance(element: nativeElements.Scene) = new Scene(element)
 }
