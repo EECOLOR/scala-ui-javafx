@@ -17,9 +17,9 @@ class Window(val implemented: ee.ui.nativeElements.Window) extends NativeImpleme
 
   def init = {
 
-    implemented.showing onChangedMatch {
-      case (false, true, _) => showWindow
-      case (true, false, _) => hideWindow
+    implemented.showing onChangedIn {
+      case (false, true) => showWindow
+      case (true, false) => hideWindow
     }
 
     /*
@@ -34,9 +34,9 @@ class Window(val implemented: ee.ui.nativeElements.Window) extends NativeImpleme
     implemented.focused <== stage.focused
 
     implemented.scene onChanged {
-      case (None, Some(n), _) => initScene(n)
-      case (Some(o), None, _) => disposeScene(o)
-      case (Some(o), Some(n), _) => replaceScene(o, n)
+      case (None, Some(n)) => initScene(n)
+      case (Some(o), None) => disposeScene(o)
+      case (Some(o), Some(n)) => replaceScene(o, n)
       case _ => // should not happen
     }
   }
@@ -44,7 +44,7 @@ class Window(val implemented: ee.ui.nativeElements.Window) extends NativeImpleme
    * This object exists to that we will not recursively
    * update the internalStage
    */
-  object stage extends Position with Size with Focus
+  lazy val stage = new Object with Position with Size with Focus
 
   def initScene(scene: ee.ui.nativeElements.Scene) =
     internalStage foreach { s =>
