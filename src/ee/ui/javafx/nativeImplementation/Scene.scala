@@ -17,6 +17,8 @@ import javafx.scene.input.ZoomEvent
 import javafx.scene.input.RotateEvent
 import javafx.scene.input.SwipeEvent
 import javafx.scene.input.TouchPoint
+import javafx.scene.input.TransferMode
+import javafx.geometry.Point2D
 
 class Scene(val implemented:ee.ui.nativeElements.Scene) extends NativeImplementation with NativeManagerDependencies with Toolkit {
 	def init = {}
@@ -88,20 +90,19 @@ class Scene(val implemented:ee.ui.nativeElements.Scene) extends NativeImplementa
         def inputMethodEvent(event:Object) = {
             //Scene.this.processInputMethodEvent(Toolkit.getToolkit().convertInputMethodEventToFX(event));
         }
-/*
-        def menuEvent(double x, double y, double xAbs, double yAbs,
-                boolean isKeyboardTrigger) {
-            Scene.this.processMenuEvent(x, y, xAbs,yAbs, isKeyboardTrigger);
+
+        def menuEvent(x:Double, y:Double, xAbs:Double, yAbs:Double, isKeyboardTrigger:Boolean) {
+            //Scene.this.processMenuEvent(x, y, xAbs,yAbs, isKeyboardTrigger);
         }
-*/
+
        def scrollEvent(
                 eventType:EventType[ScrollEvent],
                 scrollX:Double, scrollY:Double,
                 totalScrollX:Double, totalScrollY:Double,
                 xMultiplier:Double, yMultiplier:Double,
-                touchCount:Double,
-                scrollTextX:Double, scrollTextY:Double,
-                defaultTextX:Double, defaultTextY:Double,
+                touchCount:Int,
+                scrollTextX:Int, scrollTextY:Int,
+                defaultTextX:Int, defaultTextY:Int,
                 x:Double, y:Double, screenX:Double, screenY:Double,
                 _shiftDown:Boolean, _controlDown:Boolean, 
                 _altDown:Boolean, _metaDown:Boolean,
@@ -309,18 +310,144 @@ class Scene(val implemented:ee.ui.nativeElements.Scene) extends NativeImplementa
 	}
 	
 	def internalScenePaintListener = new TKScenePaintListener {
-	  
+	    def frameRendered() = {
+	      //in javafx only used for tracking frame rate
+	    }
 	}
 	
 	lazy val internalScenePulseListener = new TKPulseListener {
-	  
+	  def pulse() = {
+	    implemented.pulse.fire
+	  }
 	}
 	
 	def internalDropTargetListener = new TKDropTargetListener {
-	  
+	    def dragEnter(e:Object):TransferMode = {
+	      /*
+            if (Scene.this.dndGesture == null) {
+                Scene.this.dndGesture = new DnDGesture();
+            }
+            return Scene.this.dndGesture.processTargetEnterOver(
+                    Toolkit.getToolkit().convertDropTargetEventToFX(
+                        e, Scene.this.dndGesture.dragboard));
+                       */
+	      null
+        }
+
+        def dragOver(e:Object):TransferMode = {
+          /*
+            if (Scene.this.dndGesture == null) {
+                System.out.println("GOT A dragOver when dndGesture is null!");
+                return null;
+            } else {
+                return Scene.this.dndGesture.processTargetEnterOver(
+                        Toolkit.getToolkit().convertDropTargetEventToFX(
+                            e, Scene.this.dndGesture.dragboard));
+            }*/
+          null
+        }
+
+        def dropActionChanged(e:Object) = {
+          /*
+            if (Scene.this.dndGesture == null) {
+                System.out.println("GOT A dropActionChanged when dndGesture is null!");
+            } else {
+                Scene.this.dndGesture.processTargetActionChanged(
+                        Toolkit.getToolkit().convertDropTargetEventToFX(
+                            e, Scene.this.dndGesture.dragboard));
+            }
+            */
+        }
+
+        def dragExit(e:Object) = {
+          /*
+            if (Scene.this.dndGesture == null) {
+                System.out.println("GOT A dragExit when dndGesture is null!");
+            } else {
+                Scene.this.dndGesture.processTargetExit(
+                        Toolkit.getToolkit().convertDropTargetEventToFX(
+                            e, Scene.this.dndGesture.dragboard));
+
+                if (Scene.this.dndGesture.source == null) {
+                    Scene.this.dndGesture = null;
+                }
+            }*/
+        }
+
+        def drop(e:Object):TransferMode = {
+          /*
+            if (Scene.this.dndGesture == null) {
+                System.out.println("GOT A drop when dndGesture is null!");
+                return null;
+            } else {
+                TransferMode tm = Scene.this.dndGesture.processTargetDrop(
+                        Toolkit.getToolkit().convertDropTargetEventToFX(
+                            e, Scene.this.dndGesture.dragboard));
+
+                if (Scene.this.dndGesture.source == null) {
+                    Scene.this.dndGesture = null;
+                }
+
+                return tm;
+
+            }*/
+          null
+        }
 	}
 	
+	//used for text input shizzle
 	lazy val internalInputMethodRequests = new InputMethodRequests {
-	  
+	    def getTextLocation(offset:Int):Point2D = {
+	      /*
+            InputMethodRequests requests = getClientRequests();
+            if (requests != null) {
+                return requests.getTextLocation(offset);
+            } else {
+                return new Point2D(0, 0);
+            }*/
+	      null
+        }
+
+        def getLocationOffset(x:Int, y:Int):Int = {
+          /*
+            InputMethodRequests requests = getClientRequests();
+            if (requests != null) {
+                return requests.getLocationOffset(x, y);
+            } else {
+                return 0;
+            }
+            */
+          0
+        }
+
+        def cancelLatestCommittedText() = {
+          /*
+            InputMethodRequests requests = getClientRequests();
+            if (requests != null) {
+                requests.cancelLatestCommittedText();
+            }
+            */
+        }
+
+        def getSelectedText():String = {
+          /*
+            InputMethodRequests requests = getClientRequests();
+            if (requests != null) {
+                return requests.getSelectedText();
+            }
+            return null;
+            */
+          null
+        }
+	    /*
+        private InputMethodRequests getClientRequests() {
+            Node focusOwner = getFocusOwner();
+            if (focusOwner != null) {
+                return focusOwner.getInputMethodRequests();
+            }
+            return null;
+        }
+        */
+ 
 	}
 }
