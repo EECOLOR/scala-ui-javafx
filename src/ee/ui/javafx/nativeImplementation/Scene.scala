@@ -1,6 +1,5 @@
 package ee.ui.javafx.nativeImplementation
 
-import ee.ui.nativeImplementation.NativeImplementation
 import com.sun.javafx.tk.TKScene
 import com.sun.javafx.tk.TKSceneListener
 import com.sun.javafx.tk.TKScenePaintListener
@@ -20,8 +19,8 @@ import javafx.scene.input.TouchPoint
 import javafx.scene.input.TransferMode
 import javafx.geometry.Point2D
 
-class Scene(val implemented:ee.ui.nativeElements.Scene) extends NativeImplementation with NativeManagerDependencies with Toolkit {
-	def init = {}
+class Scene(val implemented:ee.ui.nativeElements.Scene) extends NativeImplementation with Toolkit {
+	def update = ???
 	
 	private var internalScene:Option[TKScene] = None
 	
@@ -30,7 +29,7 @@ class Scene(val implemented:ee.ui.nativeElements.Scene) extends NativeImplementa
 	  internalScene setTKScenePaintListener internalScenePaintListener
 	  internalScene setScene this
 	  
-	  internalScene setRoot implemented.root.map(_.nativeImplementation.internalNode).orNull
+	  internalScene setRoot implemented.root.map(Nodes(_).internalNode).orNull
 	  
 	  val javaFxColor = Converters convertColor implemented.fill
 	  val toolkitPaint = toolkit getPaint javaFxColor
@@ -39,7 +38,6 @@ class Scene(val implemented:ee.ui.nativeElements.Scene) extends NativeImplementa
 	  
 	  internalScene setCamera implemented.camera.map(Converters.convertCamera).orNull
 	  
-      toolkit addSceneTkPulseListener internalScenePulseListener
        
       toolkit enableDrop(internalScene, internalDropTargetListener)
       toolkit installInputMethodRequests(internalScene, internalInputMethodRequests)
@@ -49,7 +47,6 @@ class Scene(val implemented:ee.ui.nativeElements.Scene) extends NativeImplementa
 	
 	def disposeInternalScene = {
         internalScene foreach { scene =>
-	        toolkit removeSceneTkPulseListener internalScenePulseListener
 	        scene setScene null
 	        internalScene = None
         }
@@ -313,12 +310,6 @@ class Scene(val implemented:ee.ui.nativeElements.Scene) extends NativeImplementa
 	    def frameRendered() = {
 	      //in javafx only used for tracking frame rate
 	    }
-	}
-	
-	lazy val internalScenePulseListener = new TKPulseListener {
-	  def pulse() = {
-	    implemented.pulse.fire
-	  }
 	}
 	
 	def internalDropTargetListener = new TKDropTargetListener {

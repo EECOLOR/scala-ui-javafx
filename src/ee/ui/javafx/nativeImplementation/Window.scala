@@ -2,7 +2,6 @@ package ee.ui.javafx.nativeImplementation
 
 import ee.ui.javafx.application.Toolkit
 import com.sun.javafx.tk.TKStage
-import ee.ui.nativeImplementation.NativeImplementation
 import com.sun.javafx.tk.TKStageListener
 import com.sun.javafx.tk.FocusCause
 import ee.ui.traits.Size
@@ -12,98 +11,92 @@ import com.sun.javafx.tk.TKPulseListener
 import ee.ui.properties.Property
 import ee.ui.properties.Binding._
 
-class Window(val implemented: ee.ui.nativeElements.Window) extends NativeImplementation with NativeManagerDependencies with Toolkit {
-  def internalStage: Option[TKStage] = None
+abstract class Window(val implemented: ee.ui.nativeElements.Window) extends NativeImplementation with Toolkit {
+  
+  def update = internalStageBounds.update
+  
+  protected def createInternalStage: TKStage
 
-  def init = {
+  lazy val internalStage: TKStage = createInternalStage
 
-    implemented.showing onChangedIn {
-      case (false, true) => showWindow
-      case (true, false) => hideWindow
-    }
+  /*
+   * Bind the stage values (updated from the internalStageListener)
+   * to the implemented window. This let's the window know about 
+   * the user interactions
+   */
+  implemented.x <== stage.x
+  implemented.y <== stage.y
+  implemented.width <== stage.width
+  implemented.height <== stage.height
+  implemented.focused <== stage.focused
 
-    /*
-     * Bind the stage values (updated from the internalStageListener)
-     * to the implemented window. This let's the window know about 
-     * the user interactions
-     */
-    implemented.x <== stage.x
-    implemented.y <== stage.y
-    implemented.width <== stage.width
-    implemented.height <== stage.height
-    implemented.focused <== stage.focused
-
-    implemented.scene onChanged {
-      case (None, Some(n)) => initScene(n)
-      case (Some(o), None) => disposeScene(o)
-      case (Some(o), Some(n)) => replaceScene(o, n)
-      case _ => // should not happen
-    }
+  implemented.showing onChangedIn {
+    case (false, true) => showWindow
+    case (true, false) => hideWindow
+  }  
+  
+  implemented.scene onChanged {
+    case (None, Some(n)) => initScene(n)
+    case (Some(o), None) => disposeScene(o)
+    case (Some(o), Some(n)) => replaceScene(o, n)
+    case _ => // should not happen
   }
+
   /*
    * This object exists to that we will not recursively
    * update the internalStage
    */
-  lazy val stage = new Object with Position with Size with Focus
+  private object stage extends Position with Size with Focus
 
-  def initScene(scene: ee.ui.nativeElements.Scene) =
-    internalStage foreach { s =>
-      val internalScene = s createTKScene scene.depthBuffer
-      scene.nativeImplementation initInternalScene internalScene
-      s setScene internalScene
-    }
+  def initScene(scene: ee.ui.nativeElements.Scene) = {
+    val internalScene = internalStage createTKScene scene.depthBuffer
+    Scenes(scene) initInternalScene internalScene
+    internalStage setScene internalScene
+  }
 
   def disposeScene(scene: ee.ui.nativeElements.Scene) =
-    scene.nativeImplementation disposeInternalScene
+    Scenes(scene) disposeInternalScene
 
   def replaceScene(oldScene: ee.ui.nativeElements.Scene, newScene: ee.ui.nativeElements.Scene) = {
     disposeScene(oldScene)
     initScene(newScene)
   }
 
-  private def showWindow() =
-    internalStage foreach { s =>
-      // Setup listener for changes coming back from internal stage
-      s setTKStageListener internalStageListener
+  private def showWindow() = {
+    // Setup listener for changes coming back from internal stage
+    internalStage setTKStageListener internalStageListener
 
-      // register the bounds as a listener so it can update the internal stage
-      toolkit addStageTkPulseListener internalStageBounds
+    // This method must be called 
+    // to make sure that the runtime knows the security
+    // context of where this stage was created and
+    // initialized
+    internalStage initSecurityContext
 
-      // This method must be called 
-      // to make sure that the runtime knows the security
-      // context of where this stage was created and
-      // initialized
-      s initSecurityContext
+    implemented.scene foreach initScene
 
-      implemented.scene foreach initScene
+    // set stage bounds before the window is shown
+    internalStageBounds.update
 
-      // set stage bounds before the window is shown
-      internalStageBounds.applyBounds
+    internalStage setOpacity implemented.opacity.toFloat
+    internalStage setVisible true
+  }
 
-      s setOpacity implemented.opacity.toFloat
-      s setVisible true
-    }
+  private def hideWindow() = {
 
-  private def hideWindow() =
-    internalStage foreach { s =>
+    internalStage setVisible false
 
-      s setVisible false
+    internalStage setScene null
 
-      s setScene null
+    implemented.scene foreach disposeScene
 
-      implemented.scene foreach disposeScene
+    // Remove listener for changes coming back from internal stage
+    internalStage setTKStageListener null
 
-      // Remove toolkit pulse listener
-      toolkit removeStageTkPulseListener internalStageBounds
+    // Notify internal stage
+    internalStage close
+  }
 
-      // Remove listener for changes coming back from internal stage
-      s setTKStageListener null
-
-      // Notify internal stage
-      s close
-    }
-
-  lazy private val internalStageBounds = new TKPulseListener {
+  private object internalStageBounds {
     /*
      * Bind the properties from the implemented window to the internal 
      * stage bounds, but only if the stage does not already has that 
@@ -114,58 +107,40 @@ class Window(val implemented: ee.ui.nativeElements.Window) extends NativeImpleme
     width <== implemented.width when (_ != stage.width.value)
     height <== implemented.height when (_ != stage.height.value)
 
-    var pulseRequested = false
-
-    def withListener[T](default: T): Property[T] = {
-      val property = new Property(default)
-      property forNewValue { n => pulse }
-      property
-    }
-
     /*
      * Special defaults
      */
-    val x = withListener(Double.NaN)
-    val y = withListener(Double.NaN)
-    val width = withListener(-1d)
-    val height = withListener(-1d)
-    val contentWidth = withListener(-1d)
-    val contentHeight = withListener(-1d)
-    val xGravity = withListener(0f)
-    val yGravity = withListener(0f)
+    val x = new Property(Double.NaN)
+    val y = new Property(Double.NaN)
+    val width = new Property(-1d)
+    val height = new Property(-1d)
+    val contentWidth = new Property(-1d)
+    val contentHeight = new Property(-1d)
+    val xGravity = new Property(0f)
+    val yGravity = new Property(0f)
 
-    def applyBounds = {
-      pulseRequested = false
-      internalStage foreach {
-        _.setBounds(
-          if (x.isDefault) 0 else x.toFloat,
-          if (y.isDefault) 0 else y.toFloat,
-          !x.isDefault,
-          !y.isDefault,
-          width.toFloat,
-          height.toFloat,
-          contentWidth.toFloat,
-          contentHeight.toFloat,
-          xGravity,
-          yGravity)
-      }
+    private def applyBounds = {
+      
+      internalStage.setBounds(
+        if (x.isDefault) 0 else x.toFloat,
+        if (y.isDefault) 0 else y.toFloat,
+        !x.isDefault,
+        !y.isDefault,
+        width.toFloat,
+        height.toFloat,
+        contentWidth.toFloat,
+        contentHeight.toFloat,
+        xGravity,
+        yGravity)
 
-      Seq(x, y, width, height, contentWidth, contentHeight, xGravity, yGravity) foreach {
-        _.reset
-      }
+      Seq(x, y, width, height, contentWidth, contentHeight, xGravity, yGravity) 
+      .foreach(_.reset)
     }
 
-    def pulse = applyBounds
-
-    def requestPulse = {
-      if (!pulseRequested) {
-        toolkit.requestNextPulse
-        pulseRequested = true
-      }
-    }
+    def update = applyBounds
   }
 
-  lazy private val internalStageListener = new TKStageListener {
+  private object internalStageListener extends TKStageListener {
     def changedLocation(x: Float, y: Float) = {
       stage.x = x
       stage.y = y
