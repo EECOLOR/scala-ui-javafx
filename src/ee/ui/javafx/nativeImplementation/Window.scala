@@ -16,7 +16,8 @@ abstract class Window(val implemented: ee.ui.nativeElements.Window) extends Nati
   def update = internalStageBounds.update
   
   protected def createInternalStage: TKStage
-
+  protected def closeWindow:Unit
+  
   lazy val internalStage: TKStage = createInternalStage
 
   /*
@@ -50,12 +51,12 @@ abstract class Window(val implemented: ee.ui.nativeElements.Window) extends Nati
 
   def initScene(scene: ee.ui.nativeElements.Scene) = {
     val internalScene = internalStage createTKScene scene.depthBuffer
-    Scenes(scene) initInternalScene internalScene
+    NativeManager(scene) initInternalScene internalScene
     internalStage setScene internalScene
   }
 
   def disposeScene(scene: ee.ui.nativeElements.Scene) =
-    Scenes(scene) disposeInternalScene
+    NativeManager(scene) disposeInternalScene
 
   def replaceScene(oldScene: ee.ui.nativeElements.Scene, newScene: ee.ui.nativeElements.Scene) = {
     disposeScene(oldScene)
@@ -79,6 +80,10 @@ abstract class Window(val implemented: ee.ui.nativeElements.Window) extends Nati
 
     internalStage setOpacity implemented.opacity.toFloat
     internalStage setVisible true
+    
+    toolkit.requestNextPulse
+    
+    println("Window showWindow")
   }
 
   private def hideWindow() = {
@@ -98,16 +103,6 @@ abstract class Window(val implemented: ee.ui.nativeElements.Window) extends Nati
 
   private object internalStageBounds {
     /*
-     * Bind the properties from the implemented window to the internal 
-     * stage bounds, but only if the stage does not already has that 
-     * value
-     */
-    x <== implemented.x when (_ != stage.x.value)
-    y <== implemented.y when (_ != stage.y.value)
-    width <== implemented.width when (_ != stage.width.value)
-    height <== implemented.height when (_ != stage.height.value)
-
-    /*
      * Special defaults
      */
     val x = new Property(Double.NaN)
@@ -119,6 +114,16 @@ abstract class Window(val implemented: ee.ui.nativeElements.Window) extends Nati
     val xGravity = new Property(0f)
     val yGravity = new Property(0f)
 
+    /*
+     * Bind the properties from the implemented window to the internal 
+     * stage bounds, but only if the stage does not already has that 
+     * value
+     */
+    x <== implemented.x when (_ != stage.x.value)
+    y <== implemented.y when (_ != stage.y.value)
+    width <== implemented.width when (_ != stage.width.value)
+    height <== implemented.height when (_ != stage.height.value)    
+    
     private def applyBounds = {
       
       internalStage.setBounds(
@@ -169,9 +174,12 @@ abstract class Window(val implemented: ee.ui.nativeElements.Window) extends Nati
 
     def closing() = {
       //Event.fireEvent(window, new WindowEvent(window, WindowEvent.WINDOW_CLOSE_REQUEST));
+      //println("closing")
+      closeWindow
     }
 
     def closed() = {
+    	println("closed")
       //window.hide();
     }
 

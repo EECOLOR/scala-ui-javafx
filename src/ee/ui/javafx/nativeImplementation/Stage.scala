@@ -45,11 +45,12 @@ class Stage(override val implemented: ee.ui.nativeElements.Stage) extends Window
     propertyChanges.applyChanges
   }
   
+  def closeWindow = implemented.hide
+  
   protected def createInternalStage = {
-    // Setup the peer
     val window = implemented.owner
 
-    val ownerStage = window map (Windows(_).internalStage) orNull
+    val ownerStage = window map (NativeManager(_).internalStage) orNull
 
     val tkStage = toolkit createTKStage (
     	implemented.style, 
@@ -70,6 +71,8 @@ class Stage(override val implemented: ee.ui.nativeElements.Stage) extends Window
 
     tkStage setIcons javaFxIcons
 
+    println("Stage createInternalStage")
+    
     tkStage
   }
 

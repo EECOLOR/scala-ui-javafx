@@ -20,7 +20,9 @@ import javafx.scene.input.TransferMode
 import javafx.geometry.Point2D
 
 class Scene(val implemented:ee.ui.nativeElements.Scene) extends NativeImplementation with Toolkit {
-	def update = ???
+    def update = {
+	  //TODO implement
+	}
 	
 	private var internalScene:Option[TKScene] = None
 	
@@ -29,12 +31,14 @@ class Scene(val implemented:ee.ui.nativeElements.Scene) extends NativeImplementa
 	  internalScene setTKScenePaintListener internalScenePaintListener
 	  internalScene setScene this
 	  
-	  internalScene setRoot implemented.root.map(Nodes(_).internalNode).orNull
+	  println(implemented.root.value)
 	  
-	  val javaFxColor = Converters convertColor implemented.fill
-	  val toolkitPaint = toolkit getPaint javaFxColor
+	  //TODO this will fail because the root node might not have an associated node
+	  internalScene setRoot implemented.root.map(NativeManager(_).internalNode).orNull
 	  
-	  internalScene setFillPaint toolkitPaint
+	  val toolkitPaint = implemented.fill map Converters.convertPaint
+	  
+	  internalScene setFillPaint toolkitPaint.orNull
 	  
 	  internalScene setCamera implemented.camera.map(Converters.convertCamera).orNull
 	  
@@ -56,7 +60,7 @@ class Scene(val implemented:ee.ui.nativeElements.Scene) extends NativeImplementa
 	 * This object exists to that we will not recursively
      * update the internalStage
    	 */
-	lazy val scene = new Object with Position with Size
+	object scene extends Position with Size
   
 	def internalSceneListener = new TKSceneListener {
 	  
@@ -77,6 +81,7 @@ class Scene(val implemented:ee.ui.nativeElements.Scene) extends NativeImplementa
 	    	
 	    	javaFxEvent.getEventType match {
 	    	  case MouseEvent.MOUSE_CLICKED => implemented.onMouseClicked fire convertedEvent
+	    	  case x => println("unknown event type: " + x)
 	    	}
         }
 
@@ -387,7 +392,7 @@ class Scene(val implemented:ee.ui.nativeElements.Scene) extends NativeImplementa
 	}
 	
 	//used for text input shizzle
-	lazy val internalInputMethodRequests = new InputMethodRequests {
+	object internalInputMethodRequests extends InputMethodRequests {
 	    def getTextLocation(offset:Int):Point2D = {
 	      /*
             InputMethodRequests requests = getClientRequests();

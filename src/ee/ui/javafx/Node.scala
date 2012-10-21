@@ -5,5 +5,5 @@ import ee.ui.javafx.nativeImplementation.NativeImplementation
 
 abstract class Node extends NativeImplementation {
 	
-	def internalNode:PGNode
+	val internalNode:PGNode
 }

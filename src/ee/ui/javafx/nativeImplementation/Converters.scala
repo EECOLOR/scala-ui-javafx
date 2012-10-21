@@ -12,17 +12,25 @@ import javafx.scene.input.{MouseEvent => JavaFxMouseEvent}
 import ee.ui.events.MouseEvent
 import javafx.scene.input.{MouseButton => JavaFxMouseButton}
 import ee.ui.events.MouseButton
+import ee.ui.primitives.Paint
+import ee.ui.primitives.Font
+import javafx.scene.text.{Font => JavaFxFont}
+import com.sun.prism.paint.{Paint => JavaFxPaint}
 
 object Converters extends Toolkit {
   def convertImage(image: Image): JavaFxImage = new JavaFxImage(image.url)
   
+  def convertPaint(paint:Paint):AnyRef = paint match {
+    case color:Color => toolkit getPaint convertColor(color)
+  }
+  
   def convertColor(color:Color):JavaFxColor = {
     val c = color.value
-    val r = c >>> 24
-    val g = c >>> 16 & 0xFF
-    val b = c >>> 8 & 0xFF
-    val a = c & 0xFF
-    JavaFxColor.rgb(r.toInt, g.toInt, b.toInt, a / 255d)
+    val r = c >>> 16
+    val g = c >>> 0 & 0xFF
+    val b = c & 0xFF
+
+    JavaFxColor.rgb(r, g, b, color.alpha)
   }
   
   def convertCamera(camera:Camera):CameraImpl = camera match {
@@ -57,4 +65,6 @@ object Converters extends Toolkit {
         m isShortcutDown,
         m isSynthesized 
     )
+    
+    def convertFont(f:Font):JavaFxFont = new JavaFxFont(f.name, f.size)
 }
