@@ -71,7 +71,7 @@ abstract class Window(val implemented: ee.ui.nativeElements.Window) extends Nati
     // to make sure that the runtime knows the security
     // context of where this stage was created and
     // initialized
-    internalStage initSecurityContext
+    internalStage.initSecurityContext
 
     implemented.scene foreach initScene
 
@@ -98,7 +98,7 @@ abstract class Window(val implemented: ee.ui.nativeElements.Window) extends Nati
     internalStage setTKStageListener null
 
     // Notify internal stage
-    internalStage close
+    internalStage.close
   }
 
   private object internalStageBounds {

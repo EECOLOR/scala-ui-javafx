@@ -35,10 +35,10 @@ object NativeManager extends ee.ui.nativeImplementation.NativeManager {
   protected def update(o: UiGroup): Unit = apply(o).update
   protected def update(o: UiText): Unit = apply(o).update
 
-  object Stages extends mutable.HashMap[UiStage, Stage]
-  object Scenes extends mutable.HashMap[UiScene, Scene]
-  object Groups extends mutable.HashMap[UiGroup, Group]
-  object Texts extends mutable.HashMap[UiText, Text]
+  object Stages extends mutable.WeakHashMap[UiStage, Stage]
+  object Scenes extends mutable.WeakHashMap[UiScene, Scene]
+  object Groups extends mutable.WeakHashMap[UiGroup, Group]
+  object Texts extends mutable.WeakHashMap[UiText, Text]
 }
 
 

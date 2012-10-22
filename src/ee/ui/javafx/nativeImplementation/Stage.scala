@@ -45,7 +45,7 @@ class Stage(override val implemented: ee.ui.nativeElements.Stage) extends Window
     propertyChanges.applyChanges
   }
   
-  def closeWindow = implemented.hide
+  def closeWindow = ee.ui.nativeElements.Window hide implemented
   
   protected def createInternalStage = {
     val window = implemented.owner

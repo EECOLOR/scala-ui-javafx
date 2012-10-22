@@ -5,7 +5,6 @@ import scala.util.control.ControlThrowable
 import java.security.AccessController
 import java.security.PrivilegedAction
 import java.lang.{ Boolean => JBoolean }
-import ee.ui.application.ImplicitApplicationDependencies
 import com.sun.javafx.application.PlatformImpl
 import com.sun.javafx.PlatformUtil
 import ee.ui.application.Application
@@ -13,7 +12,7 @@ import com.sun.javafx.application.ParametersImpl
 import javafx.application.ConditionalFeature
 import ee.ui.events.Event
 
-object Launcher extends ee.ui.application.Launcher with ImplicitApplicationDependencies {
+object Launcher extends ee.ui.application.Launcher {
 
   val launchComplete = new Event[ee.ui.application.Application]
 
