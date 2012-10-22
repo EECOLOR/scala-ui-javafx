@@ -6,7 +6,7 @@ import ee.ui.properties.Remove
 import ee.ui.properties.Clear
 import ee.ui.javafx.nativeImplementation.NativeManager
 
-class Group(val implemented: ee.ui.Group) extends Node with Toolkit {
+class Group(override val implemented: ee.ui.Group) extends Node(implemented) with Toolkit {
 
   val internalNode = toolkit.createPGGroup
 
@@ -21,7 +21,10 @@ class Group(val implemented: ee.ui.Group) extends Node with Toolkit {
     case x: Clear[_] => updateFirstIndex(0)
   }
 
-  def update = {
+  override def update = {
+    println("Group update")
+    super.update
+    
     val children = implemented.children
 
     internalNode clearFrom firstIndex

@@ -149,11 +149,15 @@ abstract class Window(val implemented: ee.ui.nativeElements.Window) extends Nati
     def changedLocation(x: Float, y: Float) = {
       stage.x = x
       stage.y = y
+      
+      println("stage location changed", x, y)
     }
 
     def changedSize(width: Float, height: Float) = {
       stage.width = width
       stage.height = height
+      
+      println("stage size changed", width, height)
     }
 
     def changedFocused(focused: Boolean, cause: FocusCause) = {

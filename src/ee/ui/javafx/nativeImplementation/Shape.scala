@@ -12,11 +12,12 @@ import ee.ui.nativeElements.StrokeLineJoin
 import com.sun.javafx.sg.PGShape.{ StrokeLineJoin => PGStrokeLineJoin }
 import ee.ui.properties.Property
 
-abstract class Shape(val implemented: ee.ui.nativeElements.Shape) extends Node {
+abstract class Shape(override val implemented: ee.ui.nativeElements.Shape) extends Node(implemented) {
 
   val internalNode: PGShape
 
-  def update = {
+  override def update = {
+    super.update
     propertyChanges.applyChanges
   }
 

@@ -22,5 +22,4 @@ class Rectangle(override val implemented:ee.ui.nativeElements.Rectangle) extends
 		implemented.arcWidth,
 		implemented.arcHeight
 	) ~> (internalNode updateRectangle (_, _, _, _, _, _))
-	
 }
