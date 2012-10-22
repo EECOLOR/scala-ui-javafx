@@ -65,12 +65,14 @@ class Text(override val implemented: ee.ui.nativeElements.Text) extends Shape(im
     javaFxFont.impl_getNativeFont
   }
 
+  @inline implicit def doubleToFloat(d:Double) = d.toFloat
+  
   val propertyChanges = new PropertyChangeCollector(
     //implemented.resizable ~> (internalStage setResizable _)
-    (implemented.x, implemented.y) ~> { (x, y) => helper setLocation (x.toFloat, y.toFloat) },
+    (implemented.x, implemented.y) ~> (helper setLocation (_, _)),
     implemented.boundsType ~> (helper setTextBoundsType _),
     implemented.textOrigin ~> (helper setTextOrigin _),
-    implemented.wrappingWidth ~> (helper setWrappingWidth _.toFloat),
+    implemented.wrappingWidth ~> (helper setWrappingWidth _),
     implemented.underline ~> (helper setUnderline _),
     implemented.strikethrough ~> (helper setStrikethrough _),
     implemented.textAlignment ~> (helper setTextAlignment _),

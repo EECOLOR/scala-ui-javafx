@@ -27,7 +27,7 @@ object Converters extends Toolkit {
   def convertColor(color:Color):JavaFxColor = {
     val c = color.value
     val r = c >>> 16
-    val g = c >>> 0 & 0xFF
+    val g = c >>> 8 & 0xFF
     val b = c & 0xFF
 
     JavaFxColor.rgb(r, g, b, color.alpha)

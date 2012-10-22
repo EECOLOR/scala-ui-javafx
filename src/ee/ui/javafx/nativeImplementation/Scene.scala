@@ -81,6 +81,7 @@ class Scene(val implemented:ee.ui.nativeElements.Scene) extends NativeImplementa
 	    	
 	    	javaFxEvent.getEventType match {
 	    	  case MouseEvent.MOUSE_CLICKED => implemented.onMouseClicked fire convertedEvent
+	    	  case MouseEvent.MOUSE_MOVED => implemented.onMouseMoved fire convertedEvent
 	    	  case x => println("unknown event type: " + x)
 	    	}
         }
