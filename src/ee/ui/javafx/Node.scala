@@ -22,6 +22,7 @@ abstract class Node(val implemented: ee.ui.Node) extends NativeImplementation {
       println("translating to ", x, y)
       matrix.setToIdentity
       matrix translate (x, y)
-      internalNode setTransformMatrix matrix
+      //this is problematic since this should not reflect x and y
+      //internalNode setTransformMatrix matrix
     })
 }
