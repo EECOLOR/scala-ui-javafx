@@ -48,6 +48,9 @@ class Group(override val implemented: ee.ui.Group) extends Node(implemented) wit
     firstIndex = children.size
     
     children.reset
+    
+    //for testing
+    internalNode.markDirty
   }
 }
 

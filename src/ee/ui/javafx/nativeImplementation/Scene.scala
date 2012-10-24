@@ -22,6 +22,11 @@ import javafx.geometry.Point2D
 class Scene(val implemented: ee.ui.nativeElements.Scene) extends NativeImplementation with Toolkit {
   def update = {
     //TODO implement
+    
+    //this is just for testing
+    println("updating internal scene", internalScene)
+    internalScene foreach (_.markDirty)
+    internalScene foreach (_.entireSceneNeedsRepaint)
   }
 
   private var internalScene: Option[TKScene] = None
@@ -29,10 +34,6 @@ class Scene(val implemented: ee.ui.nativeElements.Scene) extends NativeImplement
   def initInternalScene(internalScene: TKScene) = {
     internalScene setTKSceneListener internalSceneListener
     internalScene setTKScenePaintListener internalScenePaintListener
-    //probably not needed:
-    //internalScene setScene this
-
-    println(implemented.root.value)
 
     internalScene setRoot implemented.root.map(NativeManager(_).internalNode).orNull
 
@@ -45,14 +46,13 @@ class Scene(val implemented: ee.ui.nativeElements.Scene) extends NativeImplement
     toolkit enableDrop (internalScene, internalDropTargetListener)
     toolkit installInputMethodRequests (internalScene, internalInputMethodRequests)
 
+    println("Scene initInternalScene", internalScene.getClass.getName)
+    
     this.internalScene = Some(internalScene)
   }
 
   def disposeInternalScene = {
-    internalScene foreach { scene =>
-      scene setScene null
       internalScene = None
-    }
   }
 
   /*

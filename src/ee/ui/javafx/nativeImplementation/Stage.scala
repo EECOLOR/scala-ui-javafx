@@ -42,6 +42,10 @@ class Stage(override val implemented: ee.ui.nativeElements.Stage) extends Window
 
   override def update = {
 	super.update
+	
+	println("update internal stage", internalStage)
+	println("update internal stage", toolkit)
+	
     propertyChanges.applyChanges
   }
   
@@ -71,7 +75,7 @@ class Stage(override val implemented: ee.ui.nativeElements.Stage) extends Window
 
     tkStage setIcons javaFxIcons
 
-    println("Stage createInternalStage")
+    println("Stage createInternalStage", tkStage.getClass.getName)
     
     tkStage
   }

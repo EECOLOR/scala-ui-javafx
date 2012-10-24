@@ -11,7 +11,7 @@ abstract class Node(val implemented: ee.ui.Node) extends NativeImplementation {
   val internalNode: PGNode
 
   def update = {
-    println("Node update")
+    println("Node update", internalNode.getClass.getName)
     propertyChanges.applyChanges
   }
   
@@ -19,9 +19,9 @@ abstract class Node(val implemented: ee.ui.Node) extends NativeImplementation {
 
   private val propertyChanges = new PropertyChangeCollector(
     (implemented.x, implemented.y) ~> { (x, y) =>
-      println("translating to ", x, y)
-      matrix.setToIdentity
-      matrix translate (x, y)
+      //println("translating to ", x, y)
+      //matrix.setToIdentity
+      //matrix translate (x, y)
       //this is problematic since this should not reflect x and y
       //internalNode setTransformMatrix matrix
     })
