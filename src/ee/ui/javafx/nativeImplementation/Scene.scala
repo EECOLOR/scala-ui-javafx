@@ -4,7 +4,6 @@ import com.sun.javafx.tk.TKScene
 import com.sun.javafx.tk.TKSceneListener
 import com.sun.javafx.tk.TKScenePaintListener
 import ee.ui.javafx.application.Toolkit
-import com.sun.javafx.tk.TKPulseListener
 import com.sun.javafx.tk.TKDropTargetListener
 import javafx.scene.input.InputMethodRequests
 import ee.ui.traits.Position

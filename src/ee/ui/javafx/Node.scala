@@ -64,14 +64,39 @@ abstract class Node(val implemented: ee.ui.Node) extends NativeImplementation {
       matrix.translate(x, y, z)
   }
 
-  //pivotX = implemented.x + implemented.width / 2
-
   private val propertyChanges = new PropertyChangeCollector(
-    (implemented.x, implemented.y) ~> { (x, y) =>
-      //println("translating to ", x, y)
-      //matrix.setToIdentity
-      //matrix translate (x, y)
-      //this is problematic since this should not reflect x and y
-      //internalNode setTransformMatrix matrix
-    })
+    (implemented.x, implemented.y,
+      implemented.translateX, implemented.translateY, implemented.translateZ,
+      implemented.rotation, implemented.rotationAxis,
+      implemented.scaleX, implemented.scaleY, implemented.scaleZ) ~> {
+        (x, y,
+        translateX, translateY, translateZ,
+        rotation, rotationAxis,
+        scaleX, scaleY, scaleZ) =>
+
+          matrix.setToIdentity
+
+          val (newX, newY) =
+            if (addPositionToTranslatePosition) (x + translateX, y + translateY)
+            else (translateX, translateY)
+
+          if (scaleX != 1 || scaleY != 1 || scaleZ != 1 || rotation != 0) {
+        	val pivotX = implemented.width / 2d + implemented.x  
+        	val pivotY = implemented.height / 2d + implemented.y
+        	
+        	matrix translate (newX + pivotX, newY + pivotY, translateZ)
+            matrix rotate (math toRadians rotation, rotationAxis.x, rotationAxis.y, rotationAxis.z)
+        	matrix scale (scaleX, scaleY, scaleZ)
+        	matrix translate (-pivotX, -pivotY, 0)
+        	
+          } else 
+            matrix translate (newX, newY, translateZ)
+
+          //TODO add a listener for the transforms
+          implemented.transforms foreach applyTransformation
+          
+          //TODO add bounds
+          
+          internalNode setTransformMatrix matrix
+      })
 }
