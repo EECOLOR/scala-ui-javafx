@@ -12,6 +12,8 @@ class Rectangle(override val implemented:ee.ui.nativeElements.Rectangle) extends
 	  propertyChanges.applyChanges
 	}
 	
+	override val addPositionToTranslatePosition = false
+	
 	@inline implicit def doubleToFloat(d:Double) = d.toFloat
 	
 	val propertyChanges = (

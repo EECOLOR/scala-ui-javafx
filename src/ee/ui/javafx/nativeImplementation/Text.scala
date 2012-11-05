@@ -24,6 +24,8 @@ class Text(override val implemented: ee.ui.nativeElements.Text) extends Shape(im
     internalNode.updateText
   }
   
+  override val addPositionToTranslatePosition = false
+  
   lazy val helper = internalNode.getTextHelper
 
   implicit def textBoundsTypeToInt(textBoundsType: TextBoundsType): Int =
