@@ -24,7 +24,7 @@ class Text(override val implemented: ee.ui.nativeElements.Text) extends Shape(im
     internalNode.updateText
   }
   
-  override val addPositionToTranslatePosition = false
+  override val ignorePosition = true
   
   lazy val helper = internalNode.getTextHelper
 

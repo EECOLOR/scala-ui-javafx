@@ -23,10 +23,15 @@ abstract class Shape(override val implemented: ee.ui.nativeElements.Shape) exten
 
   val mode = new Property[PGShape.Mode](PGShape.Mode.FILL)
 
+  //TODO how to combine these?
   implemented.fill forNewValue { v =>
     mode.value = computeMode
   }
-
+  implemented.stroke forNewValue { v =>
+    mode.value = computeMode
+  }
+  mode.value = computeMode
+  
   def computeMode =
     (implemented.fill.isDefined, implemented.stroke.isDefined) match {
       case (true, true) => PGShape.Mode.STROKE_FILL
@@ -36,22 +41,29 @@ abstract class Shape(override val implemented: ee.ui.nativeElements.Shape) exten
     }
 
   private val propertyChanges = new PropertyChangeCollector(
-    implemented.stroke ~> { stroke =>
-      stroke foreach { stroke =>
-        internalNode.setDrawStroke(
-          implemented.strokeWidth,
-          implemented.strokeType.value,
-          implemented.strokeLineCap.value,
-          implemented.strokeLineJoin.value,
-          //TODO implement these: strokeMiterLimit, dashArray and strokeDashOffset
-          10.0f,
-          new Array[Float](0),
-          0)
-      }
-    },
-    mode ~> (internalNode setMode _),
+    (implemented.strokeWidth,
+      implemented.strokeType,
+      implemented.strokeLineCap,
+      implemented.strokeLineJoin,
+      implemented.stroke) ~> {
+        (strokeWidth, strokeType, strokeLineCap, strokeLineJoin, stroke) =>
+
+          if (stroke.isDefined) {
+            internalNode.setDrawStroke(
+              strokeWidth,
+              strokeType,
+              strokeLineCap,
+              strokeLineJoin,
+              //TODO implement these: strokeMiterLimit, dashArray and strokeDashOffset
+              10.0f,
+              new Array[Float](0),
+              0)
+          }
+          
+          internalNode setDrawPaint stroke.map(Converters.convertPaint).orNull
+      },
     implemented.fill ~> (internalNode setFillPaint _.map(Converters.convertPaint).orNull),
-    implemented.stroke ~> (internalNode setDrawPaint _.map(Converters.convertPaint).orNull),
+    mode ~> (internalNode setMode _),
     implemented.antialiased ~> (internalNode setAntialiased _))
 
   implicit def strokeTypeToPGStrokeType(strokeType: StrokeType): PGStrokeType =
