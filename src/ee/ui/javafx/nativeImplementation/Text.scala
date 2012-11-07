@@ -2,7 +2,7 @@ package ee.ui.javafx.nativeImplementation
 
 import ee.ui.javafx.application.Toolkit
 import ee.ui.properties.PropertyChangeCollector
-import ee.ui.properties.PropertyChangeCollector._
+import ee.ui.properties.PropertyGroup._
 import ee.ui.nativeElements.TextBoundsType
 import javafx.scene.text.{ TextBoundsType => FxTextBoundsType }
 import ee.ui.primitives.VerticalPosition
@@ -20,7 +20,7 @@ class Text(override val implemented: ee.ui.nativeElements.Text) extends Shape(im
   override def update = {
     super.update
     
-    propertyChanges.applyChanges
+    propertyChanges.applyIfChanged
     internalNode.updateText
   }
   
@@ -70,18 +70,18 @@ class Text(override val implemented: ee.ui.nativeElements.Text) extends Shape(im
   @inline implicit def doubleToFloat(d:Double) = d.toFloat
   
   val propertyChanges = new PropertyChangeCollector(
-    //implemented.resizable ~> (internalStage setResizable _)
-    (implemented.x, implemented.y) ~> (helper setLocation (_, _)),
-    implemented.boundsType ~> (helper setTextBoundsType _),
-    implemented.textOrigin ~> (helper setTextOrigin _),
-    implemented.wrappingWidth ~> (helper setWrappingWidth _),
-    implemented.underline ~> (helper setUnderline _),
-    implemented.strikethrough ~> (helper setStrikethrough _),
-    implemented.textAlignment ~> (helper setTextAlignment _),
-    implemented.fontSmoothingType ~> (helper setFontSmoothingType _),
-    implemented.font ~> (helper setFont getNativeFont(_)),
-    implemented.text ~> (helper setText _),
-    implemented.stroke ~> (helper setStroke _.isDefined)
+    //implemented.resizable ~~> (internalStage setResizable _)
+    (implemented.x, implemented.y) ~~> (helper setLocation (_, _)),
+    implemented.boundsType ~~> (helper setTextBoundsType _),
+    implemented.textOrigin ~~> (helper setTextOrigin _),
+    implemented.wrappingWidth ~~> (helper setWrappingWidth _),
+    implemented.underline ~~> (helper setUnderline _),
+    implemented.strikethrough ~~> (helper setStrikethrough _),
+    implemented.textAlignment ~~> (helper setTextAlignment _),
+    implemented.fontSmoothingType ~~> (helper setFontSmoothingType _),
+    implemented.font ~~> (helper setFont getNativeFont(_)),
+    implemented.text ~~> (helper setText _),
+    implemented.stroke ~~> (helper setStroke _.isDefined)
     /* TODO implement selection
       
         if (impl_isDirty(DirtyBits.TEXT_SELECTION)) {
@@ -101,5 +101,5 @@ class Text(override val implemented: ee.ui.nativeElements.Text) extends Shape(im
             } else {
                 // Deselect any PGText, in order to update selected text color
                 helper.setLogicalSelection(0, 0);	    */ )
-  
+  propertyChanges.changed = true
 }

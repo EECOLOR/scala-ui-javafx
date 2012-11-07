@@ -4,7 +4,7 @@ import com.sun.javafx.sg.PGNode
 import ee.ui.javafx.nativeImplementation.NativeImplementation
 import com.sun.javafx.geom.transform.Affine3D
 import ee.ui.properties.PropertyChangeCollector
-import ee.ui.properties.PropertyChangeCollector._
+import ee.ui.properties.PropertyGroup._
 import ee.ui.primitives.Affine
 import ee.ui.primitives.Rotate
 import ee.ui.primitives.Scale
@@ -18,7 +18,7 @@ abstract class Node(val implemented: ee.ui.Node) extends NativeImplementation {
 
   def update = {
     println("Node update", internalNode.getClass.getName)
-    propertyChanges.applyChanges
+    propertyChanges.applyIfChanged
   }
 
   val matrix = new Affine3D
@@ -26,7 +26,7 @@ abstract class Node(val implemented: ee.ui.Node) extends NativeImplementation {
   val ignorePosition = false
 
   private val propertyChanges = new PropertyChangeCollector(
-    (implemented.x, implemented.y, implemented.totalTransformation) ~> {
+    (implemented.x, implemented.y, implemented.totalTransformation) ~~> {
         (x, y, totalTransformation) =>
           
           //TODO add bounds
@@ -42,4 +42,5 @@ abstract class Node(val implemented: ee.ui.Node) extends NativeImplementation {
 
           internalNode setTransformMatrix matrix
       })
+  propertyChanges.changed = true
 }

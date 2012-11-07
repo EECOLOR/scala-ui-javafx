@@ -12,33 +12,34 @@ import javafx.stage.{ Modality => JavaFxModality }
 import javafx.stage.{ StageStyle => JavaFxStageStyle }
 import scala.collection.JavaConversions._
 import ee.ui.properties.PropertyChangeCollector
-import ee.ui.properties.PropertyChangeCollector._
+import ee.ui.properties.PropertyGroup._
 import ee.ui.properties.ReadOnlyProperty
 import ee.ui.properties.Property
 
 class Stage(override val implemented: ee.ui.nativeElements.Stage) extends Window(implemented) {
 
-  val propertyChanges = new PropertyChangeCollector(
-    implemented.resizable ~> (internalStage setResizable _),
-    implemented.fullScreen ~> (internalStage setFullScreen _),
-    implemented.iconified ~> (internalStage setIconified _),
-    implemented.title ~> (internalStage setTitle _.orNull),
+  val propertyChanges = PropertyChangeCollector(
+    implemented.resizable ~~> (internalStage setResizable _),
+    implemented.fullScreen ~~> (internalStage setFullScreen _),
+    implemented.iconified ~~> (internalStage setIconified _),
+    implemented.title ~~> (internalStage setTitle _.orNull),
 
-    implemented.minWidth ~> { n =>
+    implemented.minWidth ~~> { n =>
       internalStage setMinimumSize (n.toInt, implemented.minHeight.toInt)
     },
 
-    implemented.minHeight ~> { n =>
+    implemented.minHeight ~~> { n =>
       internalStage setMinimumSize (implemented.minWidth.toInt, n.toInt)
     },
 
-    implemented.maxWidth ~> { n =>
+    implemented.maxWidth ~~> { n =>
       internalStage setMaximumSize (n.toInt, implemented.maxHeight.toInt)
     },
 
-    implemented.maxHeight ~> { n =>
+    implemented.maxHeight ~~> { n =>
       internalStage setMaximumSize (implemented.maxWidth.toInt, n.toInt)
     })
+  propertyChanges.changed = true
 
   override def update = {
 	super.update
@@ -46,7 +47,7 @@ class Stage(override val implemented: ee.ui.nativeElements.Stage) extends Window
 	println("update internal stage", internalStage)
 	println("update internal stage", toolkit)
 	
-    propertyChanges.applyChanges
+    propertyChanges.applyIfChanged
   }
   
   def closeWindow = ee.ui.nativeElements.Window hide implemented

@@ -2,7 +2,6 @@ package ee.ui.javafx.nativeImplementation
 
 import ee.ui.javafx.Node
 import ee.ui.properties.PropertyChangeCollector
-import ee.ui.properties.PropertyChangeCollector._
 import com.sun.javafx.sg.PGShape
 import ee.ui.nativeElements.StrokeType
 import com.sun.javafx.sg.PGShape.{ StrokeType => PGStrokeType }
@@ -11,6 +10,8 @@ import com.sun.javafx.sg.PGShape.{ StrokeLineCap => PGStrokeLineCap }
 import ee.ui.nativeElements.StrokeLineJoin
 import com.sun.javafx.sg.PGShape.{ StrokeLineJoin => PGStrokeLineJoin }
 import ee.ui.properties.Property
+import ee.ui.properties.PropertyGroup
+import ee.ui.properties.PropertyGroup._
 
 abstract class Shape(override val implemented: ee.ui.nativeElements.Shape) extends Node(implemented) {
 
@@ -18,34 +19,28 @@ abstract class Shape(override val implemented: ee.ui.nativeElements.Shape) exten
 
   override def update = {
     super.update
-    propertyChanges.applyChanges
+    propertyChanges.applyIfChanged
   }
 
   val mode = new Property[PGShape.Mode](PGShape.Mode.FILL)
 
-  //TODO how to combine these?
-  implemented.fill forNewValue { v =>
-    mode.value = computeMode
-  }
-  implemented.stroke forNewValue { v =>
-    mode.value = computeMode
-  }
-  mode.value = computeMode
-  
-  def computeMode =
-    (implemented.fill.isDefined, implemented.stroke.isDefined) match {
-      case (true, true) => PGShape.Mode.STROKE_FILL
-      case (true, false) => PGShape.Mode.FILL
-      case (false, true) => PGShape.Mode.STROKE
-      case (false, false) => PGShape.Mode.EMPTY
-    }
+  (PropertyGroup(implemented.fill, implemented.stroke) ~> {
+    (fill, stroke) =>
+      mode.value = 
+        (fill.isDefined, stroke.isDefined) match {
+          case (true, true) => PGShape.Mode.STROKE_FILL
+          case (true, false) => PGShape.Mode.FILL
+          case (false, true) => PGShape.Mode.STROKE
+          case (false, false) => PGShape.Mode.EMPTY
+        }
+  }).apply
 
-  private val propertyChanges = new PropertyChangeCollector(
+  private val propertyChanges = PropertyChangeCollector(
     (implemented.strokeWidth,
       implemented.strokeType,
       implemented.strokeLineCap,
       implemented.strokeLineJoin,
-      implemented.stroke) ~> {
+      implemented.stroke) ~~> {
         (strokeWidth, strokeType, strokeLineCap, strokeLineJoin, stroke) =>
 
           if (stroke.isDefined) {
@@ -59,13 +54,14 @@ abstract class Shape(override val implemented: ee.ui.nativeElements.Shape) exten
               new Array[Float](0),
               0)
           }
-          
+
           internalNode setDrawPaint stroke.map(Converters.convertPaint).orNull
       },
-    implemented.fill ~> (internalNode setFillPaint _.map(Converters.convertPaint).orNull),
-    mode ~> (internalNode setMode _),
-    implemented.antialiased ~> (internalNode setAntialiased _))
-
+    implemented.fill ~~> (internalNode setFillPaint _.map(Converters.convertPaint).orNull),
+    mode ~~> (internalNode setMode _),
+    implemented.antialiased ~~> (internalNode setAntialiased _))
+  propertyChanges.changed = true
+    
   implicit def strokeTypeToPGStrokeType(strokeType: StrokeType): PGStrokeType =
     strokeType match {
       case StrokeType.INSIDE => PGStrokeType.INSIDE

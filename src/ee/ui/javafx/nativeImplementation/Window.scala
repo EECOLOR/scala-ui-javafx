@@ -36,7 +36,7 @@ abstract class Window(val implemented: ee.ui.nativeElements.Window) extends Nati
     case (true, false) => hideWindow
   }  
   
-  implemented.scene onChanged {
+  implemented.scene onChangedIn {
     case (None, Some(n)) => initScene(n)
     case (Some(o), None) => disposeScene(o)
     case (Some(o), Some(n)) => replaceScene(o, n)
