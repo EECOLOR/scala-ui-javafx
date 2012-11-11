@@ -20,8 +20,5 @@ object JavaFxPulseEvent extends PulseEvent with TKPulseListener with Toolkit {
   
   toolkit addStageTkPulseListener this
   
-  def pulse = {
-    println("JavaFxPulseEvent pulse from " + this)
-		  fire
-  }
+  def pulse = fire
 }

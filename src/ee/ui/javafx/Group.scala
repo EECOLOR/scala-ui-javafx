@@ -22,7 +22,6 @@ class Group(override val implemented: ee.ui.Group) extends Node(implemented) wit
   }
 
   override def update = {
-    println("Group update")
     super.update
     
     val children = implemented.children

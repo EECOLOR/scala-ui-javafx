@@ -12,6 +12,9 @@ import javafx.scene.text.{ TextAlignment => FxTextAlignment }
 import ee.ui.nativeElements.FontSmoothingType
 import javafx.scene.text.{ FontSmoothingType => FxFontSmoothingType }
 import ee.ui.primitives.Font
+import com.sun.javafx.geom.RectBounds
+import ee.ui.traits.RestrictedAccess
+import ee.ui.properties.PropertyChangeHandler
 
 class Text(override val implemented: ee.ui.nativeElements.Text) extends Shape(implemented) with Toolkit {
   
@@ -20,11 +23,8 @@ class Text(override val implemented: ee.ui.nativeElements.Text) extends Shape(im
   override def update = {
     super.update
     
-    propertyChanges.applyIfChanged
     internalNode.updateText
   }
-  
-  override val ignorePosition = true
   
   lazy val helper = internalNode.getTextHelper
 
@@ -69,19 +69,29 @@ class Text(override val implemented: ee.ui.nativeElements.Text) extends Shape(im
 
   @inline implicit def doubleToFloat(d:Double) = d.toFloat
   
-  val propertyChanges = new PropertyChangeCollector(
+  val propertyChanges = new PropertyChangeHandler(
     //implemented.resizable ~~> (internalStage setResizable _)
-    (implemented.x, implemented.y) ~~> (helper setLocation (_, _)),
-    implemented.boundsType ~~> (helper setTextBoundsType _),
-    implemented.textOrigin ~~> (helper setTextOrigin _),
-    implemented.wrappingWidth ~~> (helper setWrappingWidth _),
-    implemented.underline ~~> (helper setUnderline _),
-    implemented.strikethrough ~~> (helper setStrikethrough _),
-    implemented.textAlignment ~~> (helper setTextAlignment _),
-    implemented.fontSmoothingType ~~> (helper setFontSmoothingType _),
-    implemented.font ~~> (helper setFont getNativeFont(_)),
-    implemented.text ~~> (helper setText _),
-    implemented.stroke ~~> (helper setStroke _.isDefined)
+    implemented.boundsType ~> (helper setTextBoundsType _),
+    implemented.textOrigin ~> (helper setTextOrigin _),
+    implemented.wrappingWidth ~> (helper setWrappingWidth _),
+    implemented.underline ~> (helper setUnderline _),
+    implemented.strikethrough ~> (helper setStrikethrough _),
+    implemented.textAlignment ~> (helper setTextAlignment _),
+    implemented.fontSmoothingType ~> (helper setFontSmoothingType _),
+    implemented.font ~> (helper setFont getNativeFont(_)),
+    implemented.text ~> (helper setText _),
+    implemented.stroke ~> (helper setStroke _.isDefined),
+    //TODO we need to listen to more properties
+    implemented.text ~> { text =>
+      val bounds = 
+        if (text.length == 0) new RectBounds
+        else helper computeLayoutBounds new RectBounds
+        
+      implicit val access = RestrictedAccess
+        
+      implemented.width = bounds.getWidth
+      implemented.height = bounds.getHeight
+    }
     /* TODO implement selection
       
         if (impl_isDirty(DirtyBits.TEXT_SELECTION)) {
@@ -101,5 +111,5 @@ class Text(override val implemented: ee.ui.nativeElements.Text) extends Shape(im
             } else {
                 // Deselect any PGText, in order to update selected text color
                 helper.setLogicalSelection(0, 0);	    */ )
-  propertyChanges.changed = true
+  propertyChanges.apply
 }

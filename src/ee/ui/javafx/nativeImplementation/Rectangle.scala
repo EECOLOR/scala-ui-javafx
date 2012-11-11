@@ -11,17 +11,13 @@ class Rectangle(override val implemented:ee.ui.nativeElements.Rectangle) extends
 	  propertyChanges.applyIfChanged
 	}
 	
-	override val ignorePosition = true
-	
 	@inline implicit def doubleToFloat(d:Double) = d.toFloat
 	
 	val propertyChanges = (
-		implemented.x,
-		implemented.y,
 		implemented.width,
 		implemented.height,
 		implemented.arcWidth,
 		implemented.arcHeight
-	) ~~> (internalNode updateRectangle (_, _, _, _, _, _))
+	) ~~> (internalNode updateRectangle (0, 0, _, _, _, _))
 	propertyChanges.changed = true
 }

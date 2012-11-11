@@ -16,6 +16,8 @@ import ee.ui.primitives.Paint
 import ee.ui.primitives.Font
 import javafx.scene.text.{Font => JavaFxFont}
 import com.sun.prism.paint.{Paint => JavaFxPaint}
+import ee.ui.primitives.Bounds
+import com.sun.javafx.geom.BaseBounds
 
 object Converters extends Toolkit {
   def convertImage(image: Image): JavaFxImage = new JavaFxImage(image.url)
@@ -67,4 +69,9 @@ object Converters extends Toolkit {
     )
     
     def convertFont(f:Font):JavaFxFont = new JavaFxFont(f.name, f.size)
+  
+  def convertBounds(b:Bounds):BaseBounds = 
+    BaseBounds getInstance (
+        b.minX.toFloat, b.minY.toFloat, b.minZ.toFloat, 
+        b.maxX.toFloat, b.maxY.toFloat, b.maxZ.toFloat)
 }

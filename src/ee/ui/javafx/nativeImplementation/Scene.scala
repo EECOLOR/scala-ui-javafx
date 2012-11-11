@@ -45,8 +45,6 @@ class Scene(val implemented: ee.ui.nativeElements.Scene) extends NativeImplement
     toolkit enableDrop (internalScene, internalDropTargetListener)
     toolkit installInputMethodRequests (internalScene, internalInputMethodRequests)
 
-    println("Scene initInternalScene", internalScene.getClass.getName)
-    
     this.internalScene = Some(internalScene)
   }
 

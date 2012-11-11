@@ -44,9 +44,6 @@ class Stage(override val implemented: ee.ui.nativeElements.Stage) extends Window
   override def update = {
 	super.update
 	
-	println("update internal stage", internalStage)
-	println("update internal stage", toolkit)
-	
     propertyChanges.applyIfChanged
   }
   
