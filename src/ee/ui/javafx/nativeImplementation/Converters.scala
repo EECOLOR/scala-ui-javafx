@@ -49,23 +49,23 @@ object Converters extends Toolkit {
   
   def convertMouseEvent(m:JavaFxMouseEvent):MouseEvent = 
     MouseEvent(
-        convertMouseButton(m getButton),
-        m getClickCount,
-        m getSceneX,
-        m getSceneY,
-        m getScreenX,
-        m getScreenY,
-        m getX,
-        m getY,
-        m isAltDown,
-        m isControlDown,
-        m isMetaDown,
-        m isMiddleButtonDown,
-        m isPrimaryButtonDown,
-        m isSecondaryButtonDown,
-        m isShiftDown,
-        m isShortcutDown,
-        m isSynthesized 
+        convertMouseButton(m.getButton),
+        m.getClickCount,
+        m.getSceneX,
+        m.getSceneY,
+        m.getScreenX,
+        m.getScreenY,
+        m.getX,
+        m.getY,
+        m.isAltDown,
+        m.isControlDown,
+        m.isMetaDown,
+        m.isMiddleButtonDown,
+        m.isPrimaryButtonDown,
+        m.isSecondaryButtonDown,
+        m.isShiftDown,
+        m.isShortcutDown,
+        m.isSynthesized 
     )
     
     def convertFont(f:Font):JavaFxFont = new JavaFxFont(f.name, f.size)

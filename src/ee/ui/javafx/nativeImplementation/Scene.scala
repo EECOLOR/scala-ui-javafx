@@ -17,6 +17,7 @@ import javafx.scene.input.SwipeEvent
 import javafx.scene.input.TouchPoint
 import javafx.scene.input.TransferMode
 import javafx.geometry.Point2D
+import javafx.event.Event
 
 class Scene(val implemented: ee.ui.nativeElements.Scene) extends NativeImplementation with Toolkit {
   def update = {
@@ -25,7 +26,7 @@ class Scene(val implemented: ee.ui.nativeElements.Scene) extends NativeImplement
     //this is just for testing
     println("updating internal scene", internalScene)
     internalScene foreach (_.markDirty)
-    internalScene foreach (_.entireSceneNeedsRepaint)
+    //internalScene foreach (_.entireSceneNeedsRepaint)
   }
 
   private var internalScene: Option[TKScene] = None
