@@ -91,8 +91,12 @@ class Scene(val implemented: ee.ui.nativeElements.Scene) extends NativeImplement
       val convertedEvent = Converters convertMouseEvent javaFxEvent
 
       javaFxEvent.getEventType match {
-        case MouseEvent.MOUSE_CLICKED => implemented.onMouseClicked fire convertedEvent
-        case MouseEvent.MOUSE_MOVED => implemented.onMouseMoved fire convertedEvent
+        case MouseEvent.MOUSE_MOVED | MouseEvent.MOUSE_DRAGGED => 
+          implemented.onMouseMoved fire convertedEvent
+        case MouseEvent.MOUSE_PRESSED => 
+          implemented.onMouseDown fire convertedEvent
+        case MouseEvent.MOUSE_RELEASED => 
+          implemented.onMouseUp fire convertedEvent
         case x => println("unknown event type: " + x)
       }
     }
