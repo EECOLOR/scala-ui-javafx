@@ -17,9 +17,15 @@ import ee.ui.properties.PropertyChangeCollector
 import ee.ui.properties.PropertyGroup._
 import ee.ui.properties.Binding
 import scala.collection.JavaConversions._
+import ee.ui.traits.ExplicitPosition
+import ee.ui.traits.ExplicitSize
+import ee.ui.traits.ExplicitFocus
+import ee.ui.nativeImplementation.WindowContract
 
-class Window(val implemented: ee.ui.nativeElements.Window) extends NativeImplementation with Toolkit {
+class Window(val contract: WindowContract) extends NativeImplementation with Toolkit {
 
+  val implemented = contract.read
+  
   def update = {
 
     internalStageBounds.update
@@ -35,11 +41,11 @@ class Window(val implemented: ee.ui.nativeElements.Window) extends NativeImpleme
    * to the implemented window. This let's the window know about 
    * the user interactions
    */
-  implemented.x <== stage.x
-  implemented.y <== stage.y
-  implemented.width <== stage.width
-  implemented.height <== stage.height
-  implemented.focused <== stage.focused
+  contract.write.x <== stage.x
+  contract.write.y <== stage.y
+  contract.write.width <== stage.width
+  contract.write.height <== stage.height
+  contract.write.focused <== stage.focused
 
   implemented.showing onChangedIn {
     case (false, true) => showWindow
@@ -57,7 +63,7 @@ class Window(val implemented: ee.ui.nativeElements.Window) extends NativeImpleme
    * This object exists to that we will not recursively
    * update the internalStage
    */
-  private object stage extends Position with Size with Focus
+  private object stage extends ExplicitPosition with ExplicitSize with ExplicitFocus
 
   def initScene(scene: ee.ui.nativeElements.Scene) = {
     val internalScene = internalStage createTKScene scene.depthBuffer

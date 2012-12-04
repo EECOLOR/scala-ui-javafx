@@ -19,8 +19,14 @@ import javafx.scene.input.TransferMode
 import javafx.geometry.Point2D
 import javafx.event.Event
 import javafx.scene.input.KeyEvent
+import ee.ui.traits.ExplicitPosition
+import ee.ui.traits.ExplicitSize
+import ee.ui.nativeImplementation.SceneContract
 
-class Scene(val implemented: ee.ui.nativeElements.Scene) extends NativeImplementation with Toolkit {
+class Scene(val contract:SceneContract) extends NativeImplementation with Toolkit {
+  
+  val implemented = contract.read
+  
   def update = {
     //TODO implement
     
@@ -59,16 +65,16 @@ class Scene(val implemented: ee.ui.nativeElements.Scene) extends NativeImplement
      * to the implemented window. This let's the window know about 
      * the user interactions
      */
-  implemented.x <== scene.x
-  implemented.y <== scene.y
-  implemented.width <== scene.width
-  implemented.height <== scene.height
+  contract.write.x <== scene.x
+  contract.write.y <== scene.y
+  contract.write.width <== scene.width
+  contract.write.height <== scene.height
 
   /*
 	 * This object exists to that we will not recursively
      * update the internalStage
    	 */
-  object scene extends Position with Size
+  object scene extends ExplicitPosition with ExplicitSize
 
   def internalSceneListener = new TKSceneListener {
 
@@ -93,11 +99,11 @@ class Scene(val implemented: ee.ui.nativeElements.Scene) extends NativeImplement
 
       javaFxEvent.getEventType match {
         case MouseEvent.MOUSE_MOVED | MouseEvent.MOUSE_DRAGGED => 
-          implemented.onMouseMoved fire convertedEvent
+          contract.write.onMouseMoved fire convertedEvent
         case MouseEvent.MOUSE_PRESSED => 
-          implemented.onMouseDown fire convertedEvent
+          contract.write.onMouseDown fire convertedEvent
         case MouseEvent.MOUSE_RELEASED => 
-          implemented.onMouseUp fire convertedEvent
+          contract.write.onMouseUp fire convertedEvent
         case x => println("unknown event type: " + x)
       }
     }
@@ -107,11 +113,11 @@ class Scene(val implemented: ee.ui.nativeElements.Scene) extends NativeImplement
       
       javaFxEvent.getEventType match {
         case KeyEvent.KEY_PRESSED =>
-          implemented.onKeyDown fire (Converters convertKeyEvent javaFxEvent)
+          contract.write.onKeyDown fire (Converters convertKeyEvent javaFxEvent)
         case KeyEvent.KEY_RELEASED =>
-          implemented.onKeyUp fire (Converters convertKeyEvent javaFxEvent)
+          contract.write.onKeyUp fire (Converters convertKeyEvent javaFxEvent)
         case KeyEvent.KEY_PRESSED =>
-          implemented.onCharacterTyped fire (Converters convertCharacterTypedEvent javaFxEvent)
+          contract.write.onCharacterTyped fire (Converters convertCharacterTypedEvent javaFxEvent)
           
       }
     }
