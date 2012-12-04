@@ -144,7 +144,7 @@ object Launcher extends ee.ui.application.Launcher {
               isStartCalled set true
 
               // Create primary stage and call application start method
-              val primaryStage = new ee.ui.nativeElements.Stage(true)
+              val primaryStage = new ee.ui.nativeElements.Window(true)
               theApp start primaryStage
               launchComplete fire theApp
             } catch {

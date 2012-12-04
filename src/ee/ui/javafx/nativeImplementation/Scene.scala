@@ -18,6 +18,7 @@ import javafx.scene.input.TouchPoint
 import javafx.scene.input.TransferMode
 import javafx.geometry.Point2D
 import javafx.event.Event
+import javafx.scene.input.KeyEvent
 
 class Scene(val implemented: ee.ui.nativeElements.Scene) extends NativeImplementation with Toolkit {
   def update = {
@@ -102,7 +103,17 @@ class Scene(val implemented: ee.ui.nativeElements.Scene) extends NativeImplement
     }
 
     def keyEvent(event: Object) = {
-      //Scene.this.impl_processKeyEvent(Toolkit.getToolkit().convertKeyEventToFX(event));
+      val javaFxEvent = toolkit convertKeyEventToFX event
+      
+      javaFxEvent.getEventType match {
+        case KeyEvent.KEY_PRESSED =>
+          implemented.onKeyDown fire (Converters convertKeyEvent javaFxEvent)
+        case KeyEvent.KEY_RELEASED =>
+          implemented.onKeyUp fire (Converters convertKeyEvent javaFxEvent)
+        case KeyEvent.KEY_PRESSED =>
+          implemented.onCharacterTyped fire (Converters convertCharacterTypedEvent javaFxEvent)
+          
+      }
     }
 
     def inputMethodEvent(event: Object) = {

@@ -9,15 +9,25 @@ import ee.ui.traits.Position
 import ee.ui.traits.Focus
 import com.sun.javafx.tk.TKPulseListener
 import ee.ui.properties.Property
-import ee.ui.properties.Binding._
+import javafx.stage.StageStyle
+import javafx.stage.{ Modality => JavaFxModality }
+import ee.ui.nativeElements.WindowStyle
+import ee.ui.nativeElements.Modality
+import ee.ui.properties.PropertyChangeCollector
+import ee.ui.properties.PropertyGroup._
+import ee.ui.properties.Binding
+import scala.collection.JavaConversions._
 
-abstract class Window(val implemented: ee.ui.nativeElements.Window) extends NativeImplementation with Toolkit {
-  
-  def update = internalStageBounds.update
-  
-  protected def createInternalStage: TKStage
-  protected def closeWindow:Unit
-  
+class Window(val implemented: ee.ui.nativeElements.Window) extends NativeImplementation with Toolkit {
+
+  def update = {
+
+    internalStageBounds.update
+    propertyChanges.applyIfChanged
+  }
+
+  protected def closeWindow: Unit = ee.ui.nativeElements.Window hide implemented
+
   lazy val internalStage: TKStage = createInternalStage
 
   /*
@@ -34,8 +44,8 @@ abstract class Window(val implemented: ee.ui.nativeElements.Window) extends Nati
   implemented.showing onChangedIn {
     case (false, true) => showWindow
     case (true, false) => hideWindow
-  }  
-  
+  }
+
   implemented.scene onChangedIn {
     case (None, Some(n)) => initScene(n)
     case (Some(o), None) => disposeScene(o)
@@ -80,7 +90,7 @@ abstract class Window(val implemented: ee.ui.nativeElements.Window) extends Nati
 
     internalStage setOpacity implemented.opacity.toFloat
     internalStage setVisible true
-    
+
     toolkit.requestNextPulse
   }
 
@@ -117,13 +127,14 @@ abstract class Window(val implemented: ee.ui.nativeElements.Window) extends Nati
      * stage bounds, but only if the stage does not already has that 
      * value
      */
+    import Binding._
     x <== implemented.x when (_ != stage.x.value)
     y <== implemented.y when (_ != stage.y.value)
     width <== implemented.width when (_ != stage.width.value)
-    height <== implemented.height when (_ != stage.height.value)    
-    
+    height <== implemented.height when (_ != stage.height.value)
+
     private def applyBounds = {
-      
+
       internalStage.setBounds(
         if (x.isDefault) 0 else x.toFloat,
         if (y.isDefault) 0 else y.toFloat,
@@ -136,8 +147,8 @@ abstract class Window(val implemented: ee.ui.nativeElements.Window) extends Nati
         xGravity,
         yGravity)
 
-      Seq(x, y, width, height, contentWidth, contentHeight, xGravity, yGravity) 
-      .foreach(_.reset)
+      Seq(x, y, width, height, contentWidth, contentHeight, xGravity, yGravity)
+        .foreach(_.reset)
     }
 
     def update = applyBounds
@@ -177,12 +188,77 @@ abstract class Window(val implemented: ee.ui.nativeElements.Window) extends Nati
     }
 
     def closed() = {
-    	println("closed")
+      println("closed")
       //window.hide();
     }
 
     def focusUngrab() = {
       //Event.fireEvent(window, new FocusUngrabEvent());
     }
+  }
+
+  val propertyChanges = PropertyChangeCollector(
+    implemented.resizable ~~> (internalStage setResizable _),
+    implemented.fullScreen ~~> (internalStage setFullScreen _),
+    implemented.iconified ~~> (internalStage setIconified _),
+    implemented.title ~~> (internalStage setTitle _.orNull),
+
+    implemented.minWidth ~~> { n =>
+      internalStage setMinimumSize (n.toInt, implemented.minHeight.toInt)
+    },
+
+    implemented.minHeight ~~> { n =>
+      internalStage setMinimumSize (implemented.minWidth.toInt, n.toInt)
+    },
+
+    implemented.maxWidth ~~> { n =>
+      internalStage setMaximumSize (n.toInt, implemented.maxHeight.toInt)
+    },
+
+    implemented.maxHeight ~~> { n =>
+      internalStage setMaximumSize (implemented.maxWidth.toInt, n.toInt)
+    })
+  propertyChanges.changed = true
+
+  protected def createInternalStage = {
+    val window = implemented.owner
+
+    val ownerStage = window map (NativeManager(_).internalStage) orNull
+
+    val tkStage = toolkit createTKStage (
+      implemented.style,
+      implemented.primary,
+      implemented.modality,
+      ownerStage)
+    tkStage setImportant true
+
+    // Finish initialization
+    tkStage setResizable implemented.resizable
+    tkStage setFullScreen implemented.fullScreen
+    tkStage setIconified implemented.iconified
+    tkStage setTitle implemented.title.orNull
+    tkStage setMinimumSize (implemented.minWidth.toInt, implemented.minHeight.toInt)
+    tkStage setMaximumSize (implemented.maxWidth.toInt, implemented.maxHeight.toInt)
+
+    val javaFxIcons = implemented.icons map Converters.convertImage
+
+    tkStage setIcons javaFxIcons
+
+    println("Stage createInternalStage", tkStage.getClass.getName)
+
+    tkStage
+  }
+
+  implicit private def style(style: Property[WindowStyle]): StageStyle = style.value match {
+    case WindowStyle.DECORATED => StageStyle.DECORATED
+    case WindowStyle.TRANSPARENT => StageStyle.TRANSPARENT
+    case WindowStyle.UNDECORATED => StageStyle.UNDECORATED
+    case WindowStyle.UTILITY => StageStyle.UTILITY
+  }
+
+  implicit private def modality(modality: Property[Modality]): JavaFxModality = modality.value match {
+    case Modality.APPLICATION_MODAL => JavaFxModality.APPLICATION_MODAL
+    case Modality.NONE => JavaFxModality.NONE
+    case Modality.WINDOW_MODAL => JavaFxModality.WINDOW_MODAL
   }
 }
