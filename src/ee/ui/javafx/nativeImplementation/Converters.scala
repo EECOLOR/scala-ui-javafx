@@ -25,6 +25,8 @@ import ee.ui.primitives.KeyCode
 import javafx.scene.input.{ KeyCode => JavaFxKeyCode }
 import ee.ui.application.DataFormat
 import javafx.scene.input.{ DataFormat => JavaFxDataFormat }
+import ee.ui.primitives.FontMetrics
+import com.sun.javafx.tk.{ FontMetrics => JavaFxFontMetrics }
 
 object Converters extends Toolkit {
   def convertImage(image: Image): JavaFxImage = new JavaFxImage(image.url)
@@ -91,7 +93,12 @@ object Converters extends Toolkit {
       k.isAltDown,
       k.isMetaDown)
 
-  def convertFont(f: Font): JavaFxFont = new JavaFxFont(f.name, f.size)
+  def convertFont(f: Font): JavaFxFont = new JavaFxFont(f.name, f.size.getOrElse(-1))
+  def convertFont(f: JavaFxFont): Font = {
+    val size = f.getSize
+
+    Font(f.getName, if (size == -1) None else Some(size))
+  }
 
   def convertBounds(b: Bounds): BaseBounds =
     BaseBounds getInstance (
@@ -100,4 +107,14 @@ object Converters extends Toolkit {
 
   def convertDataFormat(d: DataFormat): JavaFxDataFormat =
     new JavaFxDataFormat(d.ids: _*)
+
+  def convertFontMetrics(f: JavaFxFontMetrics): FontMetrics =
+    FontMetrics(
+      f.getMaxAscent,
+      f.getAscent,
+      f.getXheight,
+      f.getDescent,
+      f.getMaxDescent,
+      f.getLeading,
+      convertFont(f.getFont))
 }

@@ -16,6 +16,8 @@ import ee.ui.application.ClipBoard
 import javafx.util.Pair
 import ee.ui.javafx.nativeImplementation.Converters
 import ee.ui.application.DataFormat
+import ee.ui.primitives.Font
+import ee.ui.primitives.FontMetrics
 
 trait JavaFxApplicationLauncher extends ApplicationLauncher {
   def applicationDependencies = new ApplicationDependencies {
@@ -27,14 +29,14 @@ trait JavaFxApplicationLauncher extends ApplicationLauncher {
 
       lazy val textHelper = new TextHelper {
         def getCaretPosition(text: Text, index: Int): Point = {
-          val nativeShape = NativeManager(text).helper.getCaretShape(index, false)
+          val nativeShape = NativeManager(text).helper getCaretShape (index, false)
           val pathElements = toolkit convertShapeToFXPath nativeShape
           val caretPath = new Path2D()
-          pathElements foreach (_.impl_addTo(caretPath))
+          pathElements foreach (_ impl_addTo caretPath)
           
           val boundingBox = Array[Float](0, 0, 0, 0)
 
-          com.sun.javafx.geom.Shape.accumulate(boundingBox, caretPath, null);
+          com.sun.javafx.geom.Shape accumulate (boundingBox, caretPath, null);
 
           val Array(minX, minY, maxX, maxY) = boundingBox
           
@@ -42,10 +44,17 @@ trait JavaFxApplicationLauncher extends ApplicationLauncher {
         }
 
         def getCaretIndex(text: Text, position: Point): Int = {
-          val nativeHitInfo = NativeManager(text).helper.getHitInfo(position.x.toFloat, position.y.toFloat)
+          val nativeHitInfo = NativeManager(text).helper getHitInfo (position.x.toFloat, position.y.toFloat)
           
           (toolkit convertHitInfoToFX nativeHitInfo).getCharIndex
         }
+        
+        def getFontMetrics(font:Font):FontMetrics = {
+          val javaFxFont = Converters convertFont font
+          val javaFxFontMetrics = toolkit.getFontLoader getFontMetrics javaFxFont
+          Converters convertFontMetrics javaFxFontMetrics
+        }
+        
       }
       
       lazy val systemClipBoard = new ClipBoard {
