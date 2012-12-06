@@ -23,6 +23,8 @@ import javafx.scene.input.{ KeyEvent => JavaFxKeyEvent }
 import ee.ui.events.CharacterTypedEvent
 import ee.ui.primitives.KeyCode
 import javafx.scene.input.{ KeyCode => JavaFxKeyCode }
+import ee.ui.application.DataFormat
+import javafx.scene.input.{ DataFormat => JavaFxDataFormat }
 
 object Converters extends Toolkit {
   def convertImage(image: Image): JavaFxImage = new JavaFxImage(image.url)
@@ -95,4 +97,7 @@ object Converters extends Toolkit {
     BaseBounds getInstance (
       b.minX.toFloat, b.minY.toFloat, b.minZ.toFloat,
       b.maxX.toFloat, b.maxY.toFloat, b.maxZ.toFloat)
+
+  def convertDataFormat(d: DataFormat): JavaFxDataFormat =
+    new JavaFxDataFormat(d.ids: _*)
 }

@@ -7,14 +7,61 @@ import ee.ui.javafx.nativeImplementation.NativeManager
 import ee.ui.events.PulseEvent
 import com.sun.javafx.tk.TKPulseListener
 import ee.ui.application.ImplementationContract
+import ee.ui.application.TextHelper
+import ee.ui.nativeElements.Text
+import javafx.scene.shape.Path
+import ee.ui.primitives.Point
+import com.sun.javafx.geom.Path2D
+import ee.ui.application.ClipBoard
+import javafx.util.Pair
+import ee.ui.javafx.nativeImplementation.Converters
+import ee.ui.application.DataFormat
 
 trait JavaFxApplicationLauncher extends ApplicationLauncher {
   def applicationDependencies = new ApplicationDependencies {
-    val implementationContract = new ImplementationContract {
+    val implementationContract = new ImplementationContract with Toolkit {
 
       lazy val launcher = Launcher
       lazy val elementImplementationHandler = NativeManager
       lazy val pulseEvent = JavaFxPulseEvent
+
+      lazy val textHelper = new TextHelper {
+        def getCaretPosition(text: Text, index: Int): Point = {
+          val nativeShape = NativeManager(text).helper.getCaretShape(index, false)
+          val pathElements = toolkit convertShapeToFXPath nativeShape
+          val caretPath = new Path2D()
+          pathElements foreach (_.impl_addTo(caretPath))
+          
+          val boundingBox = Array[Float](0, 0, 0, 0)
+
+          com.sun.javafx.geom.Shape.accumulate(boundingBox, caretPath, null);
+
+          val Array(minX, minY, maxX, maxY) = boundingBox
+          
+          Point((minX + maxX) / 2, (minY + maxY) / 2)
+        }
+
+        def getCaretIndex(text: Text, position: Point): Int = {
+          val nativeHitInfo = NativeManager(text).helper.getHitInfo(position.x.toFloat, position.y.toFloat)
+          
+          (toolkit convertHitInfoToFX nativeHitInfo).getCharIndex
+        }
+      }
+      
+      lazy val systemClipBoard = new ClipBoard {
+        lazy val systemClipBoard = toolkit.getSystemClipboard()
+        
+        implicit def dataFormat(d:DataFormat) = Converters convertDataFormat d
+        
+        def set(key:DataFormat, value:AnyRef): Boolean =
+          systemClipBoard putContent new Pair(key, value)
+
+        def get(key: DataFormat): Option[AnyRef] =
+          Option(systemClipBoard getContent key)
+
+        def contains(key:DataFormat):Boolean =
+          systemClipBoard hasContent key
+      }
     }
   }
 }
