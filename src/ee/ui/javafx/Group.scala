@@ -6,7 +6,7 @@ import ee.ui.properties.Remove
 import ee.ui.properties.Clear
 import ee.ui.javafx.nativeImplementation.NativeManager
 
-class Group(override val implemented: ee.ui.Group) extends Node(implemented) with Toolkit {
+class Group(override val implemented: ee.ui.display.Group) extends Node(implemented) with Toolkit {
 
   val internalNode = toolkit.createPGGroup
 

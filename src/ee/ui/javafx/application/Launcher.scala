@@ -143,9 +143,7 @@ object Launcher extends ee.ui.application.Launcher {
             try {
               isStartCalled set true
 
-              // Create primary stage and call application start method
-              val primaryStage = new ee.ui.nativeElements.Window(true)
-              theApp start primaryStage
+              theApp.start()
               launchComplete fire theApp
             } catch {
               case ct: ControlThrowable => throw ct

@@ -4,23 +4,20 @@ import ee.ui.javafx.application.Toolkit
 import com.sun.javafx.tk.TKStage
 import com.sun.javafx.tk.TKStageListener
 import com.sun.javafx.tk.FocusCause
-import ee.ui.traits.Size
-import ee.ui.traits.Position
-import ee.ui.traits.Focus
 import com.sun.javafx.tk.TKPulseListener
 import ee.ui.properties.Property
 import javafx.stage.StageStyle
 import javafx.stage.{ Modality => JavaFxModality }
-import ee.ui.nativeElements.WindowStyle
-import ee.ui.nativeElements.Modality
 import ee.ui.properties.PropertyChangeCollector
 import ee.ui.properties.PropertyGroup._
 import ee.ui.properties.Binding
 import scala.collection.JavaConversions._
-import ee.ui.traits.ExplicitPosition
-import ee.ui.traits.ExplicitSize
-import ee.ui.traits.ExplicitFocus
-import ee.ui.nativeImplementation.WindowContract
+import ee.ui.display.traits.ExplicitSize
+import ee.ui.display.traits.ExplicitFocus
+import ee.ui.display.WindowStyle
+import ee.ui.display.implementation.WindowContract
+import ee.ui.display.traits.ExplicitPosition
+import ee.ui.display.Modality
 
 class Window(val contract: WindowContract) extends NativeImplementation with Toolkit {
 
@@ -32,7 +29,7 @@ class Window(val contract: WindowContract) extends NativeImplementation with Too
     propertyChanges.applyIfChanged
   }
 
-  protected def closeWindow: Unit = ee.ui.nativeElements.Window hide implemented
+  protected def closeWindow: Unit = ee.ui.display.Window hide implemented
 
   lazy val internalStage: TKStage = createInternalStage
 
@@ -65,16 +62,16 @@ class Window(val contract: WindowContract) extends NativeImplementation with Too
    */
   private object stage extends ExplicitPosition with ExplicitSize with ExplicitFocus
 
-  def initScene(scene: ee.ui.nativeElements.Scene) = {
+  def initScene(scene: ee.ui.display.Scene) = {
     val internalScene = internalStage createTKScene scene.depthBuffer
     NativeManager(scene) initInternalScene internalScene
     internalStage setScene internalScene
   }
 
-  def disposeScene(scene: ee.ui.nativeElements.Scene) =
+  def disposeScene(scene: ee.ui.display.Scene) =
     NativeManager(scene) disposeInternalScene
 
-  def replaceScene(oldScene: ee.ui.nativeElements.Scene, newScene: ee.ui.nativeElements.Scene) = {
+  def replaceScene(oldScene: ee.ui.display.Scene, newScene: ee.ui.display.Scene) = {
     disposeScene(oldScene)
     initScene(newScene)
   }

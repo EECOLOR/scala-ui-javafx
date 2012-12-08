@@ -6,8 +6,6 @@ import com.sun.javafx.tk.TKScenePaintListener
 import ee.ui.javafx.application.Toolkit
 import com.sun.javafx.tk.TKDropTargetListener
 import javafx.scene.input.InputMethodRequests
-import ee.ui.traits.Position
-import ee.ui.traits.Size
 import javafx.scene.input.MouseEvent
 import javafx.event.EventType
 import javafx.scene.input.ScrollEvent
@@ -19,9 +17,9 @@ import javafx.scene.input.TransferMode
 import javafx.geometry.Point2D
 import javafx.event.Event
 import javafx.scene.input.KeyEvent
-import ee.ui.traits.ExplicitPosition
-import ee.ui.traits.ExplicitSize
-import ee.ui.nativeImplementation.SceneContract
+import ee.ui.display.traits.ExplicitPosition
+import ee.ui.display.traits.ExplicitSize
+import ee.ui.display.implementation.SceneContract
 
 class Scene(val contract:SceneContract) extends NativeImplementation with Toolkit {
   

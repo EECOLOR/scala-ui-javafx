@@ -3,20 +3,20 @@ package ee.ui.javafx.nativeImplementation
 import ee.ui.javafx.application.Toolkit
 import ee.ui.properties.PropertyChangeCollector
 import ee.ui.properties.PropertyGroup._
-import ee.ui.nativeElements.TextBoundsType
 import javafx.scene.text.{ TextBoundsType => FxTextBoundsType }
 import ee.ui.primitives.VerticalPosition
 import javafx.geometry.VPos
-import ee.ui.nativeElements.TextAlignment
 import javafx.scene.text.{ TextAlignment => FxTextAlignment }
-import ee.ui.nativeElements.FontSmoothingType
 import javafx.scene.text.{ FontSmoothingType => FxFontSmoothingType }
 import ee.ui.primitives.Font
 import com.sun.javafx.geom.RectBounds
-import ee.ui.traits.RestrictedAccess
 import ee.ui.properties.PropertyChangeHandler
+import ee.ui.system.RestrictedAccess
+import ee.ui.display.FontSmoothingType
+import ee.ui.display.TextBoundsType
+import ee.ui.display.TextAlignment
 
-class Text(override val implemented: ee.ui.nativeElements.Text) extends Shape(implemented) with Toolkit {
+class Text(override val implemented: ee.ui.display.Text) extends Shape(implemented) with Toolkit {
   
   val internalNode = toolkit.createPGText
 

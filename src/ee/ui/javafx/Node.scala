@@ -13,7 +13,7 @@ import ee.ui.primitives.Translate
 import ee.ui.primitives.Transformation
 import ee.ui.javafx.nativeImplementation.Converters
 
-abstract class Node(val implemented: ee.ui.Node) extends NativeImplementation {
+abstract class Node(val implemented: ee.ui.display.Node) extends NativeImplementation {
 
   val internalNode: PGNode
 

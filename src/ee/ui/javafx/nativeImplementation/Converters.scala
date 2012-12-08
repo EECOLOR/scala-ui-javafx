@@ -23,10 +23,10 @@ import javafx.scene.input.{ KeyEvent => JavaFxKeyEvent }
 import ee.ui.events.CharacterTypedEvent
 import ee.ui.primitives.KeyCode
 import javafx.scene.input.{ KeyCode => JavaFxKeyCode }
-import ee.ui.application.DataFormat
 import javafx.scene.input.{ DataFormat => JavaFxDataFormat }
 import ee.ui.primitives.FontMetrics
 import com.sun.javafx.tk.{ FontMetrics => JavaFxFontMetrics }
+import ee.ui.system.DataFormat
 
 object Converters extends Toolkit {
   def convertImage(image: Image): JavaFxImage = new JavaFxImage(image.url)

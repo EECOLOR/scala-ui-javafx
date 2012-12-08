@@ -7,20 +7,21 @@ import ee.ui.javafx.nativeImplementation.NativeManager
 import ee.ui.events.PulseEvent
 import com.sun.javafx.tk.TKPulseListener
 import ee.ui.application.ImplementationContract
-import ee.ui.application.TextHelper
-import ee.ui.nativeElements.Text
 import javafx.scene.shape.Path
 import ee.ui.primitives.Point
 import com.sun.javafx.geom.Path2D
-import ee.ui.application.ClipBoard
 import javafx.util.Pair
 import ee.ui.javafx.nativeImplementation.Converters
-import ee.ui.application.DataFormat
 import ee.ui.primitives.Font
 import ee.ui.primitives.FontMetrics
+import ee.ui.system.ClipBoard
+import ee.ui.text.TextHelper
+import ee.ui.display.Text
+import ee.ui.system.DataFormat
 
 trait JavaFxApplicationLauncher extends ApplicationLauncher {
-  def applicationDependencies = new ApplicationDependencies {
+  
+  lazy val applicationDependencies = new ApplicationDependencies {
     val implementationContract = new ImplementationContract with Toolkit {
 
       lazy val launcher = Launcher

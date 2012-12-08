@@ -3,17 +3,17 @@ package ee.ui.javafx.nativeImplementation
 import ee.ui.javafx.Node
 import ee.ui.properties.PropertyChangeCollector
 import com.sun.javafx.sg.PGShape
-import ee.ui.nativeElements.StrokeType
 import com.sun.javafx.sg.PGShape.{ StrokeType => PGStrokeType }
-import ee.ui.nativeElements.StrokeLineCap
 import com.sun.javafx.sg.PGShape.{ StrokeLineCap => PGStrokeLineCap }
-import ee.ui.nativeElements.StrokeLineJoin
 import com.sun.javafx.sg.PGShape.{ StrokeLineJoin => PGStrokeLineJoin }
 import ee.ui.properties.Property
 import ee.ui.properties.PropertyGroup
 import ee.ui.properties.PropertyGroup._
+import ee.ui.display.StrokeLineJoin
+import ee.ui.display.StrokeLineCap
+import ee.ui.display.StrokeType
 
-abstract class Shape(override val implemented: ee.ui.nativeElements.Shape) extends Node(implemented) {
+abstract class Shape(override val implemented: ee.ui.display.Shape) extends Node(implemented) {
 
   val internalNode: PGShape
 

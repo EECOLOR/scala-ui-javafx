@@ -2,17 +2,18 @@ package ee.ui.javafx.nativeImplementation
 
 import ee.ui.javafx.Group
 import scala.collection.mutable
-import ee.ui.nativeElements.{ Window => UiWindow }
-import ee.ui.nativeElements.{ Scene => UiScene }
-import ee.ui.nativeElements.{ Text => UiText }
-import ee.ui.nativeElements.{ Rectangle => UiRectangle }
-import ee.ui.{ Node => UiNode }
-import ee.ui.{ Group => UiGroup }
+import ee.ui.display.{ Window => UiWindow }
+import ee.ui.display.{ Scene => UiScene }
+import ee.ui.display.{ Text => UiText }
+import ee.ui.display.shape.{ Rectangle => UiRectangle }
+import ee.ui.display.{ Node => UiNode }
+import ee.ui.display.{ Group => UiGroup }
 import ee.ui.javafx.Node
-import ee.ui.nativeImplementation.WindowContract
-import ee.ui.nativeImplementation.SceneContract
+import ee.ui.display.implementation.WindowContract
+import ee.ui.display.implementation.SceneContract
+import ee.ui.display.implementation.DisplayImplementationHandler
 
-object NativeManager extends ee.ui.nativeImplementation.ElementImplementationHandler {
+object NativeManager extends DisplayImplementationHandler {
 
   def apply(o: UiNode): Node =
     o match {
