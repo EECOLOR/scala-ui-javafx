@@ -15,6 +15,7 @@ import ee.ui.system.RestrictedAccess
 import ee.ui.display.FontSmoothingType
 import ee.ui.display.TextBoundsType
 import ee.ui.display.TextAlignment
+import scala.language.implicitConversions
 
 class Text(override val implemented: ee.ui.display.Text) extends Shape(implemented) with Toolkit {
   

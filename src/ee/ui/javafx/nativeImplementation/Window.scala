@@ -18,6 +18,7 @@ import ee.ui.display.WindowStyle
 import ee.ui.display.implementation.WindowContract
 import ee.ui.display.traits.ExplicitPosition
 import ee.ui.display.Modality
+import language.implicitConversions
 
 class Window(val contract: WindowContract) extends NativeImplementation with Toolkit {
 
@@ -69,7 +70,7 @@ class Window(val contract: WindowContract) extends NativeImplementation with Too
   }
 
   def disposeScene(scene: ee.ui.display.Scene) =
-    NativeManager(scene) disposeInternalScene
+    NativeManager(scene).disposeInternalScene
 
   def replaceScene(oldScene: ee.ui.display.Scene, newScene: ee.ui.display.Scene) = {
     disposeScene(oldScene)
@@ -77,6 +78,9 @@ class Window(val contract: WindowContract) extends NativeImplementation with Too
   }
 
   private def showWindow() = {
+    // set stage bounds before the window is shown
+    internalStageBounds.update    
+    
     // Setup listener for changes coming back from internal stage
     internalStage setTKStageListener internalStageListener
 
@@ -87,9 +91,6 @@ class Window(val contract: WindowContract) extends NativeImplementation with Too
     internalStage.initSecurityContext
 
     implemented.scene foreach initScene
-
-    // set stage bounds before the window is shown
-    internalStageBounds.update
 
     internalStage setOpacity implemented.opacity.toFloat
     internalStage setVisible true
@@ -134,10 +135,13 @@ class Window(val contract: WindowContract) extends NativeImplementation with Too
     x <== implemented.x when (_ != stage.x.value)
     y <== implemented.y when (_ != stage.y.value)
     width <== implemented.width when (_ != stage.width.value)
+    println("-->", implemented.width.value, width.value)
     height <== implemented.height when (_ != stage.height.value)
 
     private def applyBounds = {
 
+      println("setting size", width.toFloat.toString)
+      
       internalStage.setBounds(
         if (x.isDefault) 0 else x.toFloat,
         if (y.isDefault) 0 else y.toFloat,
@@ -226,7 +230,7 @@ class Window(val contract: WindowContract) extends NativeImplementation with Too
   protected def createInternalStage = {
     val window = implemented.owner
 
-    val ownerStage = window map (NativeManager(_).internalStage) orNull
+    val ownerStage = window.map(NativeManager(_).internalStage).orNull
 
     val tkStage = toolkit createTKStage (
       implemented.style,

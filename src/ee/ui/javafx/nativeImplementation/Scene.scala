@@ -28,8 +28,6 @@ class Scene(val contract:SceneContract) extends NativeImplementation with Toolki
   def update = {
     //TODO implement
     
-    //this is just for testing
-    println("updating internal scene", internalScene)
     internalScene foreach (_.markDirty)
     //internalScene foreach (_.entireSceneNeedsRepaint)
   }
