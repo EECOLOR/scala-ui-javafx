@@ -15,7 +15,7 @@ class Group(override val implemented: ee.ui.display.Group) extends Node(implemen
   private def updateFirstIndex(index: Int) =
     if (index < firstIndex) firstIndex = index
 
-  implemented.children.onChangedIn {
+  implemented.children.change.in {
     case Add(index, _) => updateFirstIndex(index)
     case Remove(index, _) => updateFirstIndex(index)
     case x: Clear[_] => updateFirstIndex(0)

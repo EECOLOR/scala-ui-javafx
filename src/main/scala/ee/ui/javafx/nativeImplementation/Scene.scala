@@ -20,6 +20,7 @@ import javafx.scene.input.KeyEvent
 import ee.ui.display.traits.ExplicitPosition
 import ee.ui.display.traits.ExplicitSize
 import ee.ui.display.implementation.SceneContract
+import ee.ui.display.Node
 
 class Scene(val contract:SceneContract) extends NativeImplementation with Toolkit {
   
@@ -38,13 +39,13 @@ class Scene(val contract:SceneContract) extends NativeImplementation with Toolki
     internalScene setTKSceneListener internalSceneListener
     internalScene setTKScenePaintListener internalScenePaintListener
 
-    internalScene setRoot implemented.root.map(NativeManager(_).internalNode).orNull
+    internalScene setRoot implemented.root.value.map(NativeManager(_).internalNode).orNull
 
-    val toolkitPaint = implemented.fill map Converters.convertPaint
+    val toolkitPaint = implemented.fill.value map Converters.convertPaint
 
     internalScene setFillPaint toolkitPaint.orNull
 
-    internalScene setCamera implemented.camera.map(Converters.convertCamera).orNull
+    internalScene setCamera implemented.camera.value.map(Converters.convertCamera).orNull
 
     toolkit enableDrop (internalScene, internalDropTargetListener)
     toolkit installInputMethodRequests (internalScene, internalInputMethodRequests)

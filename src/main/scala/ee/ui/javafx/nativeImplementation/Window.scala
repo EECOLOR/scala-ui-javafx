@@ -10,7 +10,6 @@ import javafx.stage.StageStyle
 import javafx.stage.{ Modality => JavaFxModality }
 import ee.ui.properties.PropertyChangeCollector
 import ee.ui.properties.PropertyGroup._
-import ee.ui.properties.Binding
 import scala.collection.JavaConversions._
 import ee.ui.display.traits.ExplicitSize
 import ee.ui.display.traits.ExplicitFocus
@@ -45,12 +44,12 @@ class Window(val contract: WindowContract) extends NativeImplementation with Too
   contract.write.height <== stage.height
   contract.write.focused <== stage.focused
 
-  implemented.showing onChangedIn {
+  implemented.showing.change in {
     case (false, true) => showWindow
     case (true, false) => hideWindow
   }
 
-  implemented.scene onChangedIn {
+  implemented.scene.change in {
     case (None, Some(n)) => initScene(n)
     case (Some(o), None) => disposeScene(o)
     case (Some(o), Some(n)) => replaceScene(o, n)
@@ -90,7 +89,7 @@ class Window(val contract: WindowContract) extends NativeImplementation with Too
     // initialized
     internalStage.initSecurityContext
 
-    implemented.scene foreach initScene
+    implemented.scene.value foreach initScene
 
     internalStage setOpacity implemented.opacity.toFloat
     internalStage setVisible true
@@ -104,7 +103,7 @@ class Window(val contract: WindowContract) extends NativeImplementation with Too
 
     internalStage setScene null
 
-    implemented.scene foreach disposeScene
+    implemented.scene.value foreach disposeScene
 
     // Remove listener for changes coming back from internal stage
     internalStage setTKStageListener null
@@ -131,13 +130,13 @@ class Window(val contract: WindowContract) extends NativeImplementation with Too
      * stage bounds, but only if the stage does not already has that 
      * value
      */
-    import Binding._
+    /*
     x <== implemented.x when (_ != stage.x.value)
     y <== implemented.y when (_ != stage.y.value)
     width <== implemented.width when (_ != stage.width.value)
-    println("-->", implemented.width.value, width.value)
     height <== implemented.height when (_ != stage.height.value)
-
+     */
+    
     private def applyBounds = {
 
       println("setting size", width.toFloat.toString)
@@ -230,7 +229,7 @@ class Window(val contract: WindowContract) extends NativeImplementation with Too
   protected def createInternalStage = {
     val window = implemented.owner
 
-    val ownerStage = window.map(NativeManager(_).internalStage).orNull
+    val ownerStage = window.value.map(NativeManager(_).internalStage).orNull
 
     val tkStage = toolkit createTKStage (
       implemented.style,
