@@ -5,6 +5,7 @@ import ee.ui.properties.Add
 import ee.ui.properties.Remove
 import ee.ui.properties.Clear
 import ee.ui.javafx.nativeImplementation.NativeManager
+import scala.collection.mutable.ListBuffer
 
 class Group(override val implemented: ee.ui.display.Group) extends Node(implemented) with Toolkit {
 
@@ -15,10 +16,21 @@ class Group(override val implemented: ee.ui.display.Group) extends Node(implemen
   private def updateFirstIndex(index: Int) =
     if (index < firstIndex) firstIndex = index
 
-  implemented.children.change.in {
+  val removed = ListBuffer[Remove[ee.ui.display.Node]]()
+    
+  implemented.children.change collect {
     case Add(index, _) => updateFirstIndex(index)
-    case Remove(index, _) => updateFirstIndex(index)
-    case x: Clear[_] => updateFirstIndex(0)
+    case x @ Remove(index, _) => {
+      //remember it was removed
+      removed += x
+      updateFirstIndex(index)
+    }
+    case x @ Clear(elements) => {
+      removed ++= elements.view.zipWithIndex.map {
+        case (elem, index) => Remove(index, elem)
+      }
+      updateFirstIndex(0)
+    }
   }
 
   override def update = {
@@ -34,8 +46,6 @@ class Group(override val implemented: ee.ui.display.Group) extends Node(implemen
       internalNode add (i, NativeManager(node).internalNode)
     }
 
-    val removed = children.removed
-
     if (removed.size > Group.REMOVED_CHILDREN_THRESHOLD)
       internalNode markDirty
     else
@@ -46,7 +56,7 @@ class Group(override val implemented: ee.ui.display.Group) extends Node(implemen
 
     firstIndex = children.size
     
-    children.reset
+    removed.clear
     
     //for testing
     internalNode.markDirty

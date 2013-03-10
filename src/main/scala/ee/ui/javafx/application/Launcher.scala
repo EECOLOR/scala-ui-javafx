@@ -14,7 +14,7 @@ import ee.ui.events.Event
 
 object Launcher extends ee.ui.application.Launcher {
 
-  val launchComplete = new Event[ee.ui.application.Application]
+  val launchComplete = Event[ee.ui.application.Application]
 
   def launch(args: Array[String])(implicit createApplication: () => Application): Unit = {
     val launchCalled = new AtomicBoolean

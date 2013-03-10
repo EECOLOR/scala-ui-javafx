@@ -44,12 +44,12 @@ class Window(val contract: WindowContract) extends NativeImplementation with Too
   contract.write.height <== stage.height
   contract.write.focused <== stage.focused
 
-  implemented.showing.change in {
+  implemented.showing.valueChange collect {
     case (false, true) => showWindow
     case (true, false) => hideWindow
   }
 
-  implemented.scene.change in {
+  implemented.scene.valueChange collect {
     case (None, Some(n)) => initScene(n)
     case (Some(o), None) => disposeScene(o)
     case (Some(o), Some(n)) => replaceScene(o, n)
