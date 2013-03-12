@@ -10,7 +10,7 @@ import ee.ui.primitives.Shear
 import ee.ui.primitives.Translate
 import ee.ui.primitives.Transformation
 import ee.ui.javafx.nativeImplementation.Converters
-import ee.ui.properties.Property
+import ee.ui.members.Property
 
 abstract class Node(val implemented: ee.ui.display.Node) extends NativeImplementation {
 

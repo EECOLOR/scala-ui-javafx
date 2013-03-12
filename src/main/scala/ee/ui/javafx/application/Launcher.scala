@@ -10,7 +10,7 @@ import com.sun.javafx.PlatformUtil
 import ee.ui.application.Application
 import com.sun.javafx.application.ParametersImpl
 import javafx.application.ConditionalFeature
-import ee.ui.events.Event
+import ee.ui.members.Event
 
 object Launcher extends ee.ui.application.Launcher {
 

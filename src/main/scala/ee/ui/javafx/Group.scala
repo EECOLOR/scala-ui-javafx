@@ -1,9 +1,9 @@
 package ee.ui.javafx
 
 import ee.ui.javafx.application.Toolkit
-import ee.ui.properties.Add
-import ee.ui.properties.Remove
-import ee.ui.properties.Clear
+import ee.ui.members.details.Add
+import ee.ui.members.details.Remove
+import ee.ui.members.details.Clear
 import ee.ui.javafx.nativeImplementation.NativeManager
 import scala.collection.mutable.ListBuffer
 

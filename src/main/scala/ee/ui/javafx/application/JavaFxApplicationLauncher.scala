@@ -15,7 +15,7 @@ import ee.ui.javafx.nativeImplementation.Converters
 import ee.ui.primitives.Font
 import ee.ui.primitives.FontMetrics
 import ee.ui.system.ClipBoard
-import ee.ui.text.TextHelper
+import ee.ui.display.text.TextHelper
 import ee.ui.display.Text
 import ee.ui.system.DataFormat
 import scala.language.implicitConversions

@@ -113,7 +113,7 @@ class Scene(val contract:SceneContract) extends NativeImplementation with Toolki
           contract.write.onKeyDown fire (Converters convertKeyEvent javaFxEvent)
         case KeyEvent.KEY_RELEASED =>
           contract.write.onKeyUp fire (Converters convertKeyEvent javaFxEvent)
-        case KeyEvent.KEY_PRESSED =>
+        case KeyEvent.KEY_TYPED =>
           contract.write.onCharacterTyped fire (Converters convertCharacterTypedEvent javaFxEvent)
           
       }

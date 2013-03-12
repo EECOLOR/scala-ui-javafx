@@ -1,8 +1,8 @@
 package ee.ui.javafx.nativeImplementation
 
 import ee.ui.events.NullEvent
-import ee.ui.properties.Property
-import ee.ui.observables.ObservableValue
+import ee.ui.members.Property
+import ee.ui.members.details.ObservableValue
 
 trait NativeImplementation {
   val updateImplementation = new NullEvent

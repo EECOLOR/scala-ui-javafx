@@ -5,7 +5,7 @@ import com.sun.javafx.sg.PGShape
 import com.sun.javafx.sg.PGShape.{ StrokeType => PGStrokeType }
 import com.sun.javafx.sg.PGShape.{ StrokeLineCap => PGStrokeLineCap }
 import com.sun.javafx.sg.PGShape.{ StrokeLineJoin => PGStrokeLineJoin }
-import ee.ui.properties.Property
+import ee.ui.members.Property
 import ee.ui.display.StrokeLineJoin
 import ee.ui.display.StrokeLineCap
 import ee.ui.display.StrokeType

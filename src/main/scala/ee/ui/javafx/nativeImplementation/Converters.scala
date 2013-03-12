@@ -45,8 +45,8 @@ object Converters extends Toolkit {
   }
 
   def convertCamera(camera: Camera): CameraImpl = camera match {
-    case c: PerspectiveCamera => toolkit createPerspectiveCamera
-    case ParallelCamera => toolkit createParallelCamera
+    case c: PerspectiveCamera => toolkit.createPerspectiveCamera()
+    case ParallelCamera => toolkit.createParallelCamera()
   }
 
   def convertMouseButton(m: JavaFxMouseButton): MouseButton = m match {

@@ -3,7 +3,7 @@ package ee.ui.javafx.nativeImplementation
 import ee.ui.javafx.application.Toolkit
 import scala.language.implicitConversions
 import scala.language.existentials
-import ee.ui.properties.Property
+import ee.ui.members.Property
 
 class Rectangle(override val implemented: ee.ui.display.shape.Rectangle) extends Shape(implemented) with Toolkit {
   val internalNode = toolkit.createPGRectangle

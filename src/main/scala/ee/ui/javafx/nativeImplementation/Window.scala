@@ -5,7 +5,7 @@ import com.sun.javafx.tk.TKStage
 import com.sun.javafx.tk.TKStageListener
 import com.sun.javafx.tk.FocusCause
 import com.sun.javafx.tk.TKPulseListener
-import ee.ui.properties.Property
+import ee.ui.members.Property
 import javafx.stage.StageStyle
 import javafx.stage.{ Modality => JavaFxModality }
 import scala.collection.JavaConversions._
@@ -16,7 +16,6 @@ import ee.ui.display.implementation.WindowContract
 import ee.ui.display.traits.ExplicitPosition
 import ee.ui.display.Modality
 import language.implicitConversions
-import ee.ui.observables.ObservableValue
 
 class Window(val contract: WindowContract) extends NativeImplementation with Toolkit {
 
