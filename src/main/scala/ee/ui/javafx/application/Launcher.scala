@@ -37,22 +37,22 @@ object Launcher extends ee.ui.application.Launcher {
           case ex: Exception =>
             launchException = Some(new RuntimeException("Application launch exception", ex))
         } finally {
-          launchLatch countDown
+          launchLatch.countDown()
         }
       }
     });
     launcherThread setName "JavaFX-Launcher"
-    launcherThread start
+    launcherThread.start()
 
     // Wait for FX launcher thread to finish before returning to user
     try {
-      launchLatch await
+      launchLatch.await()
     } catch {
       case ex: InterruptedException =>
         throw new RuntimeException("Unexpected exception: ", ex)
     }
 
-    if (launchException isDefined) {
+    if (launchException.isDefined) {
       throw launchException.get
     }
   }
@@ -64,12 +64,12 @@ object Launcher extends ee.ui.application.Launcher {
     PlatformImpl startup new Runnable() {
       // Note, this method is called on the FX Application Thread
       def run() {
-        startupLatch countDown
+        startupLatch.countDown()
       }
     }
 
     // Wait for FX platform to start
-    startupLatch await
+    startupLatch.await()
 
     val isStartCalled = new AtomicBoolean
     val isExitCalled = new AtomicBoolean
@@ -81,12 +81,12 @@ object Launcher extends ee.ui.application.Launcher {
           return ;
         }
 
-        if (isStartCalled get) shutdownLatch countDown
+        if (isStartCalled.get) shutdownLatch.countDown()
       }
 
       def exitCalled() {
         isExitCalled set true
-        shutdownLatch countDown
+        shutdownLatch.countDown()
       }
     }
     PlatformImpl addListener listener
@@ -122,7 +122,7 @@ object Launcher extends ee.ui.application.Launcher {
 
         try {
           // Call the application init method (on the Launcher thread)
-          theApp init
+          theApp.init()
         } catch {
           case ct: ControlThrowable => throw ct
           case t: Throwable =>
@@ -157,18 +157,18 @@ object Launcher extends ee.ui.application.Launcher {
       }
 
       if (!error) {
-        shutdownLatch await
+        shutdownLatch.await()
       }
 
       var stopError: Throwable = null
 
       // Call stop method if start was called
-      if (isStartCalled get) {
+      if (isStartCalled.get) {
         // Call Application stop method on FX thread
         PlatformImpl runAndWait new Runnable() {
           def run() {
             try {
-              theApp stop
+              theApp.stop()
             } catch {
               case ct: ControlThrowable => throw ct
               case t: Throwable =>
@@ -230,7 +230,7 @@ object Launcher extends ee.ui.application.Launcher {
       if (error && isJavaws) {
         System.err println "Workaround until RT-13281 is implemented: keep toolkit alive"
       } else {
-        PlatformImpl tkExit
+        PlatformImpl.tkExit()
       }
     }
   }

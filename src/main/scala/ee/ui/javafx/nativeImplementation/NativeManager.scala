@@ -33,11 +33,11 @@ object NativeManager extends DisplayImplementationHandler {
 
   protected def register(o: WindowContract): Unit = apply(o)
 
-  protected def update(o: WindowContract): Unit = apply(o).update
-  protected def update(o: SceneContract): Unit = apply(o).update
-  protected def update(o: UiGroup): Unit = apply(o).update
-  protected def update(o: UiText): Unit = apply(o).update
-  protected def update(o: UiRectangle): Unit = apply(o).update
+  protected def update(o: WindowContract): Unit = apply(o).updateImplementation.fire
+  protected def update(o: SceneContract): Unit = apply(o).updateImplementation.fire
+  protected def update(o: UiGroup): Unit = apply(o).updateImplementation.fire
+  protected def update(o: UiText): Unit = apply(o).updateImplementation.fire
+  protected def update(o: UiRectangle): Unit = apply(o).updateImplementation.fire
 
   object Windows extends mutable.WeakHashMap[WindowContract, Window]
   object Scenes extends mutable.WeakHashMap[SceneContract, Scene]

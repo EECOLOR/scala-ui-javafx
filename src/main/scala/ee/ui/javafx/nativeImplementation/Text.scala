@@ -1,8 +1,6 @@
 package ee.ui.javafx.nativeImplementation
 
 import ee.ui.javafx.application.Toolkit
-import ee.ui.properties.PropertyChangeCollector
-import ee.ui.properties.PropertyGroup._
 import javafx.scene.text.{ TextBoundsType => FxTextBoundsType }
 import ee.ui.primitives.VerticalPosition
 import javafx.geometry.VPos
@@ -10,7 +8,6 @@ import javafx.scene.text.{ TextAlignment => FxTextAlignment }
 import javafx.scene.text.{ FontSmoothingType => FxFontSmoothingType }
 import ee.ui.primitives.Font
 import com.sun.javafx.geom.RectBounds
-import ee.ui.properties.PropertyChangeHandler
 import ee.ui.system.RestrictedAccess
 import ee.ui.display.FontSmoothingType
 import ee.ui.display.TextBoundsType
@@ -21,11 +18,7 @@ class Text(override val implemented: ee.ui.display.Text) extends Shape(implement
   
   val internalNode = toolkit.createPGText
 
-  override def update = {
-    super.update
-    
-    internalNode.updateText
-  }
+  updateImplementation(internalNode.updateText)
   
   lazy val helper = internalNode.getTextHelper
 
@@ -70,20 +63,21 @@ class Text(override val implemented: ee.ui.display.Text) extends Shape(implement
 
   @inline implicit def doubleToFloat(d:Double) = d.toFloat
   
-  val propertyChanges = new PropertyChangeHandler(
-    //implemented.resizable ~~> (internalStage setResizable _)
-    implemented.boundsType ~> (helper setTextBoundsType _),
-    implemented.textOrigin ~> (helper setTextOrigin _),
-    implemented.wrappingWidth ~> (helper setWrappingWidth _),
-    implemented.underline ~> (helper setUnderline _),
-    implemented.strikethrough ~> (helper setStrikethrough _),
-    implemented.textAlignment ~> (helper setTextAlignment _),
-    implemented.fontSmoothingType ~> (helper setFontSmoothingType _),
-    implemented.font ~> (helper setFont getNativeFont(_)),
-    implemented.text ~> (helper setText _),
-    implemented.stroke ~> (helper setStroke _.isDefined),
+  //TODO create TextContract
+  
+    //implemented.resizable.change foreach (internalStage setResizable _)
+    implemented.boundsType change (helper setTextBoundsType _)
+    implemented.textOrigin change (helper setTextOrigin _)
+    implemented.wrappingWidth change (helper setWrappingWidth _)
+    implemented.underline change (helper setUnderline _)
+    implemented.strikethrough change (helper setStrikethrough _)
+    implemented.textAlignment change (helper setTextAlignment _)
+    implemented.fontSmoothingType change (helper setFontSmoothingType _)
+    implemented.font change (helper setFont getNativeFont(_))
+    implemented.text change (helper setText _)
+    implemented.stroke change (helper setStroke _.isDefined)
     //TODO we need to listen to more properties
-    implemented.text ~> { text =>
+    implemented.text change { text =>
       val bounds = 
         if (text.length == 0) new RectBounds
         else helper computeLayoutBounds new RectBounds
@@ -111,6 +105,5 @@ class Text(override val implemented: ee.ui.display.Text) extends Shape(implement
                 helper.setSelectionPaint(strokeObj, fillObj);
             } else {
                 // Deselect any PGText, in order to update selected text color
-                helper.setLogicalSelection(0, 0);	    */ )
-  propertyChanges.apply
+                helper.setLogicalSelection(0, 0);	    */ 
 }

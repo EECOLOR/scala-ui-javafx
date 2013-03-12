@@ -8,8 +8,6 @@ import com.sun.javafx.tk.TKPulseListener
 import ee.ui.properties.Property
 import javafx.stage.StageStyle
 import javafx.stage.{ Modality => JavaFxModality }
-import ee.ui.properties.PropertyChangeCollector
-import ee.ui.properties.PropertyGroup._
 import scala.collection.JavaConversions._
 import ee.ui.display.traits.ExplicitSize
 import ee.ui.display.traits.ExplicitFocus
@@ -18,15 +16,15 @@ import ee.ui.display.implementation.WindowContract
 import ee.ui.display.traits.ExplicitPosition
 import ee.ui.display.Modality
 import language.implicitConversions
+import ee.ui.observables.ObservableValue
 
 class Window(val contract: WindowContract) extends NativeImplementation with Toolkit {
 
   val implemented = contract.read
-  
-  def update = {
+
+  updateImplementation {
 
     internalStageBounds.update
-    propertyChanges.applyIfChanged
   }
 
   protected def closeWindow: Unit = ee.ui.display.Window hide implemented
@@ -78,8 +76,8 @@ class Window(val contract: WindowContract) extends NativeImplementation with Too
 
   private def showWindow() = {
     // set stage bounds before the window is shown
-    internalStageBounds.update    
-    
+    internalStageBounds.update
+
     // Setup listener for changes coming back from internal stage
     internalStage setTKStageListener internalStageListener
 
@@ -136,11 +134,11 @@ class Window(val contract: WindowContract) extends NativeImplementation with Too
     width <== implemented.width when (_ != stage.width.value)
     height <== implemented.height when (_ != stage.height.value)
      */
-    
+
     private def applyBounds = {
 
       println("setting size", width.toFloat.toString)
-      
+
       internalStage.setBounds(
         if (x.isDefault) 0 else x.toFloat,
         if (y.isDefault) 0 else y.toFloat,
@@ -203,28 +201,24 @@ class Window(val contract: WindowContract) extends NativeImplementation with Too
     }
   }
 
-  val propertyChanges = PropertyChangeCollector(
-    implemented.resizable ~~> (internalStage setResizable _),
-    implemented.fullScreen ~~> (internalStage setFullScreen _),
-    implemented.iconified ~~> (internalStage setIconified _),
-    implemented.title ~~> (internalStage setTitle _.orNull),
+  def delayed(code: => Unit): () => Unit = () => code
 
-    implemented.minWidth ~~> { n =>
-      internalStage setMinimumSize (n.toInt, implemented.minHeight.toInt)
-    },
-
-    implemented.minHeight ~~> { n =>
-      internalStage setMinimumSize (implemented.minWidth.toInt, n.toInt)
-    },
-
-    implemented.maxWidth ~~> { n =>
-      internalStage setMaximumSize (n.toInt, implemented.maxHeight.toInt)
-    },
-
-    implemented.maxHeight ~~> { n =>
-      internalStage setMaximumSize (implemented.maxWidth.toInt, n.toInt)
-    })
-  propertyChanges.changed = true
+  implemented.resizable ~> (internalStage setResizable _)
+  implemented.fullScreen ~> (internalStage setFullScreen _)
+  implemented.iconified ~> (internalStage setIconified _)
+  implemented.title ~> (internalStage setTitle _.orNull)
+  implemented.minWidth ~> { n =>
+    internalStage setMinimumSize (n.toInt, implemented.minHeight.toInt)
+  }
+  implemented.minHeight ~> { n =>
+    internalStage setMinimumSize (implemented.minWidth.toInt, n.toInt)
+  }
+  implemented.maxWidth ~> { n =>
+    internalStage setMaximumSize (n.toInt, implemented.maxHeight.toInt)
+  }
+  implemented.maxHeight ~> { n =>
+    internalStage setMaximumSize (implemented.maxWidth.toInt, n.toInt)
+  }
 
   protected def createInternalStage = {
     val window = implemented.owner

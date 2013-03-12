@@ -33,8 +33,7 @@ class Group(override val implemented: ee.ui.display.Group) extends Node(implemen
     }
   }
 
-  override def update = {
-    super.update
+  updateImplementation {
     
     val children = implemented.children
 
@@ -47,7 +46,7 @@ class Group(override val implemented: ee.ui.display.Group) extends Node(implemen
     }
 
     if (removed.size > Group.REMOVED_CHILDREN_THRESHOLD)
-      internalNode markDirty
+      internalNode.markDirty()
     else
       removed foreach {
         case Remove(_, node) =>
@@ -58,7 +57,7 @@ class Group(override val implemented: ee.ui.display.Group) extends Node(implemen
     
     removed.clear
     
-    //for testing
+    //TODO for testing
     internalNode.markDirty
   }
 }
