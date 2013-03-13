@@ -31,7 +31,8 @@ object NativeManager extends DisplayImplementationHandler {
   def apply(o: UiText): Text = Texts.getOrElseUpdate(o, new Text(o))
   def apply(o: UiRectangle): Rectangle = Rectangles.getOrElseUpdate(o, new Rectangle(o))
 
-  protected def register(o: WindowContract): Unit = apply(o)
+  protected def show(o: WindowContract): Unit = apply(o).show()
+  protected def hide(o: WindowContract): Unit = apply(o).hide()
 
   protected def update(o: WindowContract): Unit = apply(o).updateImplementation.fire
   protected def update(o: SceneContract): Unit = apply(o).updateImplementation.fire

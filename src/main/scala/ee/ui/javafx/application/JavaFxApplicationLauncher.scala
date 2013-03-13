@@ -2,11 +2,9 @@ package ee.ui.javafx.application
 
 import ee.ui.application.Application
 import ee.ui.application.ApplicationLauncher
-import ee.ui.application.ApplicationDependencies
 import ee.ui.javafx.nativeImplementation.NativeManager
 import ee.ui.events.PulseEvent
 import com.sun.javafx.tk.TKPulseListener
-import ee.ui.application.ImplementationContract
 import javafx.scene.shape.Path
 import ee.ui.primitives.Point
 import com.sun.javafx.geom.Path2D
@@ -19,6 +17,8 @@ import ee.ui.display.text.TextHelper
 import ee.ui.display.Text
 import ee.ui.system.DataFormat
 import scala.language.implicitConversions
+import ee.ui.application.details.ApplicationDependencies
+import ee.ui.application.details.ImplementationContract
 
 trait JavaFxApplicationLauncher extends ApplicationLauncher {
   
@@ -26,7 +26,7 @@ trait JavaFxApplicationLauncher extends ApplicationLauncher {
     val implementationContract = new ImplementationContract with Toolkit {
 
       lazy val launcher = Launcher
-      lazy val elementImplementationHandler = NativeManager
+      lazy val displayImplementationHandler = NativeManager
       lazy val pulseEvent = JavaFxPulseEvent
 
       lazy val textHelper = new TextHelper {
@@ -81,5 +81,5 @@ object JavaFxPulseEvent extends PulseEvent with TKPulseListener with Toolkit {
 
   toolkit addStageTkPulseListener this
 
-  def pulse = fire
+  def pulse() = fire
 }

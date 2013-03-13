@@ -16,17 +16,23 @@ import ee.ui.display.implementation.WindowContract
 import ee.ui.display.traits.ExplicitPosition
 import ee.ui.display.Modality
 import language.implicitConversions
+import ee.ui.display.implementation.WindowImplementationHandler
+
+object StubWindowImplementationHandler extends WindowImplementationHandler {
+  protected def hide(o: ee.ui.display.implementation.WindowContract): Unit = {}
+  protected def show(o: ee.ui.display.implementation.WindowContract): Unit = {}
+}
 
 class Window(val contract: WindowContract) extends NativeImplementation with Toolkit {
 
   val implemented = contract.read
 
   updateImplementation {
-
     internalStageBounds.update
   }
 
-  protected def closeWindow: Unit = ee.ui.display.Window hide implemented
+  // make sure we don't get notified about closing the window
+  private def closeWindow: Unit = ee.ui.display.Window.hide(implemented)(StubWindowImplementationHandler)
 
   lazy val internalStage: TKStage = createInternalStage
 
@@ -40,11 +46,6 @@ class Window(val contract: WindowContract) extends NativeImplementation with Too
   contract.write.width <== stage.width
   contract.write.height <== stage.height
   contract.write.focused <== stage.focused
-
-  implemented.showing.valueChange collect {
-    case (false, true) => showWindow
-    case (true, false) => hideWindow
-  }
 
   implemented.scene.valueChange collect {
     case (None, Some(n)) => initScene(n)
@@ -73,7 +74,7 @@ class Window(val contract: WindowContract) extends NativeImplementation with Too
     initScene(newScene)
   }
 
-  private def showWindow() = {
+  def show() = {
     // set stage bounds before the window is shown
     internalStageBounds.update
 
@@ -94,7 +95,7 @@ class Window(val contract: WindowContract) extends NativeImplementation with Too
     toolkit.requestNextPulse
   }
 
-  private def hideWindow() = {
+  def hide() = {
 
     internalStage setVisible false
 
@@ -135,8 +136,6 @@ class Window(val contract: WindowContract) extends NativeImplementation with Too
      */
 
     private def applyBounds = {
-
-      println("setting size", width.toFloat.toString)
 
       internalStage.setBounds(
         if (x.isDefault) 0 else x.toFloat,

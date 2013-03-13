@@ -12,7 +12,7 @@ import com.sun.javafx.application.ParametersImpl
 import javafx.application.ConditionalFeature
 import ee.ui.members.Event
 
-object Launcher extends ee.ui.application.Launcher {
+object Launcher extends ee.ui.application.details.Launcher {
 
   val launchComplete = Event[ee.ui.application.Application]
 
