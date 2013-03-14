@@ -12,7 +12,7 @@ object LibraryBuild extends Build {
 
   val defaultSettings = Seq(
     libraryDependencies ++= appDependencies,
-    scalaVersion := "2.10.0",
+    scalaVersion := "2.10.1",
     scalacOptions += "-feature",
     resolvers ++= Seq("snapshots" at "http://oss.sonatype.org/content/repositories/snapshots",
       "releases" at "http://oss.sonatype.org/content/repositories/releases"))

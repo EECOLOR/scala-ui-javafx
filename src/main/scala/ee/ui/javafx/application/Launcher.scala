@@ -56,6 +56,8 @@ object Launcher extends ee.ui.application.details.Launcher {
       throw launchException.get
     }
   }
+  
+  def exit(application:Application) = PlatformImpl.exit()
 
   private def launchApplication(args: Array[String])(implicit createApplication: () => Application) = {
 
