@@ -25,13 +25,13 @@ trait JavaFxApplicationLauncher extends ApplicationLauncher {
   lazy val applicationDependencies = new ApplicationDependencies {
     val implementationContract = new ImplementationContract with Toolkit {
 
-      lazy val launcher = Launcher
-      lazy val displayImplementationHandler = NativeManager
+      lazy val launcher = new Launcher(DefaultPlatformImplementation)
+      lazy val displayImplementationHandler = new NativeManager(applicationCreated)
       lazy val pulseEvent = JavaFxPulseEvent
 
       lazy val textHelper = new TextHelper {
         def getCaretPosition(text: Text, index: Int): Point = {
-          val nativeShape = NativeManager(text).helper getCaretShape (index, false)
+          val nativeShape = displayImplementationHandler(text).helper getCaretShape (index, false)
           val pathElements = toolkit convertShapeToFXPath nativeShape
           val caretPath = new Path2D()
           pathElements foreach (_ impl_addTo caretPath)
@@ -46,7 +46,7 @@ trait JavaFxApplicationLauncher extends ApplicationLauncher {
         }
 
         def getCaretIndex(text: Text, position: Point): Int = {
-          val nativeHitInfo = NativeManager(text).helper getHitInfo (position.x.toFloat, position.y.toFloat)
+          val nativeHitInfo = displayImplementationHandler(text).helper getHitInfo (position.x.toFloat, position.y.toFloat)
           
           (toolkit convertHitInfoToFX nativeHitInfo).getCharIndex
         }

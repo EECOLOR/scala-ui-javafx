@@ -5,14 +5,13 @@ import scala.util.control.ControlThrowable
 import java.security.AccessController
 import java.security.PrivilegedAction
 import java.lang.{ Boolean => JBoolean }
-import com.sun.javafx.application.PlatformImpl
 import com.sun.javafx.PlatformUtil
 import ee.ui.application.Application
 import com.sun.javafx.application.ParametersImpl
 import javafx.application.ConditionalFeature
 import ee.ui.members.Event
 
-object Launcher extends ee.ui.application.details.Launcher {
+class Launcher(platformImpl:PlatformImplementation) extends ee.ui.application.details.Launcher {
 
   val launchComplete = Event[ee.ui.application.Application]
 
@@ -57,27 +56,28 @@ object Launcher extends ee.ui.application.details.Launcher {
     }
   }
   
-  def exit(application:Application) = PlatformImpl.exit()
+  def exit(application:Application) = platformImpl.exit()
 
   private def launchApplication(args: Array[String])(implicit createApplication: () => Application) = {
 
     val startupLatch = new CountDownLatch(1)
 
-    PlatformImpl startup new Runnable() {
+    platformImpl startup new Runnable() {
       // Note, this method is called on the FX Application Thread
       def run() {
         startupLatch.countDown()
       }
     }
-
+println("waiting for platform to start")
     // Wait for FX platform to start
     startupLatch.await()
+println("platform to started")
 
     val isStartCalled = new AtomicBoolean
     val isExitCalled = new AtomicBoolean
     val shutdownLatch = new CountDownLatch(1)
 
-    val listener = new PlatformImpl.FinishListener() {
+    val listener = new platformImpl.Listener() {
       def idle(implicitExit: Boolean) {
         if (!implicitExit) {
           return ;
@@ -91,7 +91,7 @@ object Launcher extends ee.ui.application.details.Launcher {
         shutdownLatch.countDown()
       }
     }
-    PlatformImpl addListener listener
+    platformImpl addListener listener
 
     var error: Boolean = false
 
@@ -140,7 +140,7 @@ object Launcher extends ee.ui.application.details.Launcher {
       if (!error && !isExitCalled.get) {
 
         // Call the application start method on FX thread
-        PlatformImpl runAndWait new Runnable() {
+        platformImpl runAndWait new Runnable() {
           def run() = {
             try {
               isStartCalled set true
@@ -167,7 +167,7 @@ object Launcher extends ee.ui.application.details.Launcher {
       // Call stop method if start was called
       if (isStartCalled.get) {
         // Call Application stop method on FX thread
-        PlatformImpl runAndWait new Runnable() {
+        platformImpl runAndWait new Runnable() {
           def run() {
             try {
               theApp.stop()
@@ -187,7 +187,7 @@ object Launcher extends ee.ui.application.details.Launcher {
       if (isMac) {
         // Exit if using the J2D pipeline. Note that currently SCENE3D
         // is false only if we are running the J2D pipeline.
-        val exitOnClose = !PlatformImpl.isSupported(ConditionalFeature.SCENE3D);
+        val exitOnClose = !platformImpl.isSupported(ConditionalFeature.SCENE3D);
         val keepAlive = AccessController doPrivileged new PrivilegedAction[Boolean] {
           def run(): Boolean = JBoolean getBoolean "javafx.keepalive"
         }
@@ -224,15 +224,14 @@ object Launcher extends ee.ui.application.details.Launcher {
         }
       }
     } finally {
-      PlatformImpl removeListener listener
+      platformImpl removeListener listener
       // Workaround until RT-13281 is implemented
       // Don't call exit if we detect an error in javaws mode
-      //            PlatformImpl.tkExit();
       val isJavaws = System.getSecurityManager() != null;
       if (error && isJavaws) {
         System.err println "Workaround until RT-13281 is implemented: keep toolkit alive"
       } else {
-        PlatformImpl.tkExit()
+        platformImpl.tkExit()
       }
     }
   }

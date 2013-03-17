@@ -18,12 +18,7 @@ import ee.ui.display.Modality
 import language.implicitConversions
 import ee.ui.display.implementation.WindowImplementationHandler
 
-object StubWindowImplementationHandler extends WindowImplementationHandler {
-  protected def hide(o: ee.ui.display.implementation.WindowContract): Unit = {}
-  protected def show(o: ee.ui.display.implementation.WindowContract): Unit = {}
-}
-
-class Window(val contract: WindowContract) extends NativeImplementation with Toolkit {
+class Window(val contract: WindowContract)(implicit nativeManager:NativeManager) extends NativeImplementation with Toolkit {
 
   val implemented = contract.read
 
@@ -31,8 +26,7 @@ class Window(val contract: WindowContract) extends NativeImplementation with Too
     internalStageBounds.update
   }
 
-  // make sure we don't get notified about closing the window
-  private def closeWindow: Unit = ee.ui.display.Window.hide(implemented)(StubWindowImplementationHandler)
+  private def closeWindow: Unit = nativeManager close implemented
 
   lazy val internalStage: TKStage = createInternalStage
 
@@ -62,12 +56,12 @@ class Window(val contract: WindowContract) extends NativeImplementation with Too
 
   def initScene(scene: ee.ui.display.Scene) = {
     val internalScene = internalStage createTKScene scene.depthBuffer
-    NativeManager(scene) initInternalScene internalScene
+    nativeManager(scene) initInternalScene internalScene
     internalStage setScene internalScene
   }
 
   def disposeScene(scene: ee.ui.display.Scene) =
-    NativeManager(scene).disposeInternalScene
+    nativeManager(scene).disposeInternalScene
 
   def replaceScene(oldScene: ee.ui.display.Scene, newScene: ee.ui.display.Scene) = {
     disposeScene(oldScene)
@@ -221,7 +215,7 @@ class Window(val contract: WindowContract) extends NativeImplementation with Too
   protected def createInternalStage = {
     val window = implemented.owner
 
-    val ownerStage = window.value.map(NativeManager(_).internalStage).orNull
+    val ownerStage = window.value.map(nativeManager(_).internalStage).orNull
 
     val tkStage = toolkit createTKStage (
       implemented.style,

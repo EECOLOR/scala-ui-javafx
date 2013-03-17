@@ -6,8 +6,9 @@ import ee.ui.members.details.Remove
 import ee.ui.members.details.Clear
 import ee.ui.javafx.nativeImplementation.NativeManager
 import scala.collection.mutable.ListBuffer
+import ee.ui.display.implementation.DisplayImplementationHandler
 
-class Group(override val implemented: ee.ui.display.Group) extends Node(implemented) with Toolkit {
+class Group(override val implemented: ee.ui.display.Group)(implicit nativeManager:NativeManager) extends Node(implemented) with Toolkit {
 
   val internalNode = toolkit.createPGGroup
 
@@ -42,7 +43,7 @@ class Group(override val implemented: ee.ui.display.Group) extends Node(implemen
     for (i <- firstIndex until children.size) {
       val node = children(i)
       println("Group adding node " + node)
-      internalNode add (i, NativeManager(node).internalNode)
+      internalNode add (i, nativeManager(node).internalNode)
     }
 
     if (removed.size > Group.REMOVED_CHILDREN_THRESHOLD)
@@ -50,7 +51,7 @@ class Group(override val implemented: ee.ui.display.Group) extends Node(implemen
     else
       removed foreach {
         case Remove(_, node) =>
-          internalNode addToRemoved (NativeManager(node).internalNode)
+          internalNode addToRemoved (nativeManager(node).internalNode)
       }
 
     firstIndex = children.size

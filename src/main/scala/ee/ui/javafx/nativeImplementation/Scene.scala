@@ -22,7 +22,7 @@ import ee.ui.display.traits.ExplicitSize
 import ee.ui.display.implementation.SceneContract
 import ee.ui.display.Node
 
-class Scene(val contract:SceneContract) extends NativeImplementation with Toolkit {
+class Scene(val contract:SceneContract)(implicit nativeManager:NativeManager) extends NativeImplementation with Toolkit {
   
   val implemented = contract.read
   
@@ -39,7 +39,7 @@ class Scene(val contract:SceneContract) extends NativeImplementation with Toolki
     internalScene setTKSceneListener internalSceneListener
     internalScene setTKScenePaintListener internalScenePaintListener
 
-    internalScene setRoot implemented.root.value.map(NativeManager(_).internalNode).orNull
+    internalScene setRoot implemented.root.value.map(nativeManager(_).internalNode).orNull
 
     val toolkitPaint = implemented.fill.value map Converters.convertPaint
 
