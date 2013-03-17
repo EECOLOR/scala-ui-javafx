@@ -122,12 +122,10 @@ class Window(val contract: WindowContract)(implicit nativeManager:NativeManager)
      * stage bounds, but only if the stage does not already has that 
      * value
      */
-    /*
-    x <== implemented.x when (_ != stage.x.value)
-    y <== implemented.y when (_ != stage.y.value)
-    width <== implemented.width when (_ != stage.width.value)
-    height <== implemented.height when (_ != stage.height.value)
-     */
+    x <== implemented.x filter (_ != stage.x.value)
+    y <== implemented.y filter (_ != stage.y.value)
+    width <== implemented.width filter (_ != stage.width.value)
+    height <== implemented.height filter (_ != stage.height.value)
 
     private def applyBounds = {
 
