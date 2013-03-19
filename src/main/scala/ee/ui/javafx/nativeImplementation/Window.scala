@@ -17,6 +17,7 @@ import ee.ui.display.traits.ExplicitPosition
 import ee.ui.display.Modality
 import language.implicitConversions
 import ee.ui.display.implementation.WindowImplementationHandler
+import ee.ui.members.ReadOnlyProperty
 
 class Window(val contract: WindowContract)(implicit nativeManager:NativeManager) extends NativeImplementation with Toolkit {
 
@@ -41,18 +42,18 @@ class Window(val contract: WindowContract)(implicit nativeManager:NativeManager)
   contract.write.height <== stage.height
   contract.write.focused <== stage.focused
 
+  /*
+   * This object exists to that we will not recursively
+   * update the internalStage
+   */
+  private object stage extends ExplicitPosition with ExplicitSize with ExplicitFocus
+  
   implemented.scene.valueChange collect {
     case (None, Some(n)) => initScene(n)
     case (Some(o), None) => disposeScene(o)
     case (Some(o), Some(n)) => replaceScene(o, n)
     case _ => // should not happen
   }
-
-  /*
-   * This object exists to that we will not recursively
-   * update the internalStage
-   */
-  private object stage extends ExplicitPosition with ExplicitSize with ExplicitFocus
 
   def initScene(scene: ee.ui.display.Scene) = {
     val internalScene = internalStage createTKScene scene.depthBuffer
@@ -81,7 +82,7 @@ class Window(val contract: WindowContract)(implicit nativeManager:NativeManager)
     // initialized
     internalStage.initSecurityContext
 
-    implemented.scene.value foreach initScene
+    implemented.scene foreach initScene
 
     internalStage setOpacity implemented.opacity.toFloat
     internalStage setVisible true
@@ -233,8 +234,6 @@ class Window(val contract: WindowContract)(implicit nativeManager:NativeManager)
     val javaFxIcons = implemented.icons map Converters.convertImage
 
     tkStage setIcons javaFxIcons
-
-    println("Stage createInternalStage", tkStage.getClass.getName)
 
     tkStage
   }
