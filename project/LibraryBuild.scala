@@ -18,8 +18,8 @@ object LibraryBuild extends Build {
     //required for the javaOptions to be passed in
     fork := true,
     resolvers ++= Seq("snapshots" at "http://oss.sonatype.org/content/repositories/snapshots",
-      "releases" at "http://oss.sonatype.org/content/repositories/releases")//,
-    //javaOptions in (Test) += "-Djavafx.toolkit=com.sun.javafx.pgstub.StubToolkit" //,
+      "releases" at "http://oss.sonatype.org/content/repositories/releases"),
+    javaOptions in (Test) += "-Djavafx.toolkit=com.sun.javafx.pgstub.StubToolkit"//,
     //javaOptions in (Test) += "-Xdebug",
     //javaOptions in (Test) += "-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005"
     )

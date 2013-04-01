@@ -1,6 +1,7 @@
 package ee.ui.application
 
 import com.sun.javafx.application.PlatformImpl
+import ee.ui.members.detail.Subscription
 
 object DefaultPlatformImplementation extends PlatformImplementation {
   def run(code: => Unit) =
@@ -16,10 +17,19 @@ object DefaultPlatformImplementation extends PlatformImplementation {
 
   def exit() = PlatformImpl.exit()
 
-  def addFinishListener(finishListener: PlatformImplementation.FinishListener) =
-    PlatformImpl addListener new PlatformImpl.FinishListener {
-      def exitCalled() = finishListener.exit()
-      def idle(javaFxImplicitExit: Boolean) = // note that we ignore the JavaFx implicit exit setting 
-        ??? //finishListener.idle()  
+  def addFinishListener(finishListener: PlatformImplementation.FinishListener) = {
+    val listener =
+      new PlatformImpl.FinishListener {
+        def exitCalled() = finishListener.exit()
+        def idle(javaFxImplicitExit: Boolean) = // note that we ignore the JavaFx implicit exit setting 
+          finishListener.idle()
+      }
+
+    PlatformImpl addListener listener
+
+    new Subscription {
+      def unsubscribe() = PlatformImpl removeListener listener
     }
+  }
+
 }
