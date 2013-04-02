@@ -36,6 +36,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javafx.geometry.Dimension2D;
 import javafx.scene.image.Image;
@@ -113,852 +115,907 @@ import javafx.util.Pair;
 
 /**
  * A Toolkit implementation for use with Testing.
- *
+ * 
  * @author Richard
  */
 @SuppressWarnings("deprecation")
 public class StubToolkit extends Toolkit {
 
-    private Map<Object, Object> contextMap = new HashMap<Object, Object>();
+  private Map<Object, Object> contextMap = new HashMap<Object, Object>();
 
-    private StubMasterTimer masterTimer = new StubMasterTimer();
+  private StubMasterTimer masterTimer = new StubMasterTimer();
 
-    private PerformanceTracker performanceTracker = new StubPerformanceTracker();
+  private PerformanceTracker performanceTracker = new StubPerformanceTracker();
 
-    private final StubImageLoaderFactory imageLoaderFactory =
-            new StubImageLoaderFactory();
+  private final StubImageLoaderFactory imageLoaderFactory = new StubImageLoaderFactory();
 
-    private CursorSizeConverter cursorSizeConverter =
-            CursorSizeConverter.NO_CURSOR_SUPPORT;
+  private CursorSizeConverter cursorSizeConverter = CursorSizeConverter.NO_CURSOR_SUPPORT;
 
-    private int maximumCursorColors = 2;
+  private int maximumCursorColors = 2;
 
-    private TKScreenConfigurationListener screenConfigurationListener;
+  private TKScreenConfigurationListener screenConfigurationListener;
+
+  private static final ScreenConfiguration[] DEFAULT_SCREEN_CONFIG = { new ScreenConfiguration(
+      0, 0, 1920, 1200, 0, 0, 1920, 1172, 96) };
+
+  private ScreenConfiguration[] screenConfigurations = DEFAULT_SCREEN_CONFIG;
+
+  static {
+    try {
+      // ugly hack to initialize "runLater" method in Platform.java
+      // PlatformImpl.startup(new Runnable() { public void run() {}});
+    } catch (Exception ex) {
+    }
+
+    // allow tests to access PG scenegraph
+    // so that they can run with assertion enabled
+    javafx.scene.Scene.impl_setAllowPGAccess(true);
+  }
+  private boolean pulseRequested;
+
+  /*
+   * overrides of Toolkit's abstract functions
+   */
+
+  @Override
+  public boolean init() {
+    return true;
+  }
+
+  @Override
+  public TKStage createTKStage(StageStyle stageStyle) {
+    return new StubStage();
+  }
+
+  public TKStage createTKStage(StageStyle stageStyle, boolean primary,
+      Modality modality, TKStage owner) {
+
+    return new StubStage();
+  }
+
+  @Override
+  public TKStage createTKPopupStage(StageStyle stageStyle, Object owner) {
+    return new StubPopupStage();
+  }
+
+  @Override
+  public TKStage createTKEmbeddedStage(HostInterface host) {
+    return new StubStage();
+  }
+
+  @Override
+  public TKSystemMenu getSystemMenu() {
+    return new StubSystemMenu();
+  }
+
+  public boolean exit = false;
+  
+  class UserThread extends Thread {
+    LinkedBlockingQueue<Runnable> a = new LinkedBlockingQueue<Runnable>();
+    public boolean exit = false;
     
-    private static final ScreenConfiguration[] DEFAULT_SCREEN_CONFIG = {
-                new ScreenConfiguration(0, 0, 1920, 1200, 0, 0, 1920, 1172, 96)
-            };
-            
-    private ScreenConfiguration[] screenConfigurations = DEFAULT_SCREEN_CONFIG;
-
-    static {
+    AtomicInteger pendingRunnables = new AtomicInteger(0);
+    
+    public void add(Runnable r) {
+      a.add(r);
+    }
+    
+    @Override
+    public void run() {
+      System.out.println("starting user thread");
+      while(!exit) {
         try {
-            // ugly hack to initialize "runLater" method in Platform.java
-           // PlatformImpl.startup(new Runnable() { public void run() {}});
-        } catch (Exception ex) {}
-
-        // allow tests to access PG scenegraph
-        // so that they can run with assertion enabled
-        javafx.scene.Scene.impl_setAllowPGAccess(true);
+          a.take().run();
+        } catch (InterruptedException e) {
+          throw new RuntimeException(e);
+        }
+      }
     }
-    private boolean pulseRequested;
-
+  }
+  
+  private UserThread userThread = new UserThread();
+  
+  @Override
+  public void startup(final Runnable runnable) {
+    exit = false;
+    runnable.run();
     /*
-     * overrides of Toolkit's abstract functions
-     */
-
-    @Override
-    public boolean init() {
-        return true;
-    }
-
-    @Override
-    public TKStage createTKStage(StageStyle stageStyle) {
-        return new StubStage();
-    }
-
-    public TKStage createTKStage(StageStyle stageStyle, boolean primary,
-            Modality modality, TKStage owner) {
-
-        return new StubStage();
-    }
-
-    @Override
-    public TKStage createTKPopupStage(StageStyle stageStyle, Object owner) {
-        return new StubPopupStage();
-    }
-
-    @Override
-    public TKStage createTKEmbeddedStage(HostInterface host) {
-        return new StubStage();
-    }
-
-    @Override
-    public TKSystemMenu getSystemMenu() {
-        return new StubSystemMenu();
-    }
-
-    @Override
-    public void startup(Runnable runnable) {
+    userThread.add(new Runnable() {
+      
+      @Override
+      public void run() {
+        setFxUserThread(Thread.currentThread());
         runnable.run();
+      }
+    });
+    userThread.start();
+    */
+  }
+  @Override
+  public void checkFxUserThread() {
+    // Do nothing
+  }
+
+  public boolean deferCalled = false;
+  
+  @Override
+  public void defer(Runnable runnable) {
+    deferCalled = true;
+    runnable.run();
+  }
+
+  @Override
+  public void exit() {
+    exit = true;
+    userThread.exit = true;
+    userThread.stop();
+    super.exit();
+    //System.exit(0);
+  }
+
+  @Override
+  public Map<Object, Object> getContextMap() {
+    return contextMap;
+  }
+
+  @Override
+  public int getRefreshRate() {
+    return -1;
+  }
+
+  private DelayedRunnable animationRunnable;
+
+  @Override
+  public void setAnimationRunnable(DelayedRunnable animationRunnable) {
+    this.animationRunnable = animationRunnable;
+  }
+
+  @Override
+  public PerformanceTracker getPerformanceTracker() {
+    return performanceTracker;
+  }
+
+  @Override
+  public PerformanceTracker createPerformanceTracker() {
+    return new StubPerformanceTracker();
+  }
+
+  @Override
+  protected Object createColorPaint(Color paint) {
+    StubColor c = new StubColor(paint.getRed(), paint.getGreen(),
+        paint.getBlue(), paint.getOpacity());
+    return c;
+  }
+
+  @Override
+  protected Object createLinearGradientPaint(LinearGradient paint) {
+    return new StubPaint();
+  }
+
+  @Override
+  protected Object createRadialGradientPaint(RadialGradient paint) {
+    return new StubPaint();
+  }
+
+  @Override
+  protected Object createImagePatternPaint(ImagePattern paint) {
+    return new StubPaint();
+  }
+
+  static BasicStroke tmpStroke = new BasicStroke();
+
+  void initStroke(StrokeType pgtype, double strokewidth, StrokeLineCap pgcap,
+      StrokeLineJoin pgjoin, float miterLimit) {
+    int type;
+    if (pgtype == StrokeType.CENTERED) {
+      type = BasicStroke.TYPE_CENTERED;
+    } else if (pgtype == StrokeType.INSIDE) {
+      type = BasicStroke.TYPE_INNER;
+    } else {
+      type = BasicStroke.TYPE_OUTER;
+    }
+
+    int cap;
+    if (pgcap == StrokeLineCap.BUTT) {
+      cap = BasicStroke.CAP_BUTT;
+    } else if (pgcap == StrokeLineCap.SQUARE) {
+      cap = BasicStroke.CAP_SQUARE;
+    } else {
+      cap = BasicStroke.CAP_ROUND;
+    }
+
+    int join;
+    if (pgjoin == StrokeLineJoin.BEVEL) {
+      join = BasicStroke.JOIN_BEVEL;
+    } else if (pgjoin == StrokeLineJoin.MITER) {
+      join = BasicStroke.JOIN_MITER;
+    } else {
+      join = BasicStroke.JOIN_ROUND;
+    }
+
+    tmpStroke.set(type, (float) strokewidth, cap, join, miterLimit);
+  }
+
+  @Override
+  public void accumulateStrokeBounds(Shape shape, float bbox[],
+      StrokeType pgtype, double strokewidth, StrokeLineCap pgcap,
+      StrokeLineJoin pgjoin, float miterLimit, BaseTransform tx) {
+
+    initStroke(pgtype, strokewidth, pgcap, pgjoin, miterLimit);
+    // TODO: The accumulation could be done directly without creating a Shape
+    Shape.accumulate(bbox, tmpStroke.createStrokedShape(shape), tx);
+  }
+
+  @Override
+  public boolean strokeContains(Shape shape, double x, double y,
+      StrokeType pgtype, double strokewidth, StrokeLineCap pgcap,
+      StrokeLineJoin pgjoin, float miterLimit) {
+    initStroke(pgtype, strokewidth, pgcap, pgjoin, miterLimit);
+    // TODO: The contains testing could be done directly without creating a
+    // Shape
+    return tmpStroke.createStrokedShape(shape).contains((float) x, (float) y);
+  }
+
+  @Override
+  public Shape createStrokedShape(Shape shape, StrokeType pgtype,
+      double strokewidth, StrokeLineCap pgcap, StrokeLineJoin pgjoin,
+      float miterLimit, float[] dashArray, float dashOffset) {
+    initStroke(pgtype, strokewidth, pgcap, pgjoin, miterLimit);
+    return tmpStroke.createStrokedShape(shape);
+  }
+
+  public CursorSizeConverter getCursorSizeConverter() {
+    return cursorSizeConverter;
+  }
+
+  public void setCursorSizeConverter(CursorSizeConverter cursorSizeConverter) {
+    this.cursorSizeConverter = cursorSizeConverter;
+  }
+
+  @Override
+  public Dimension2D getBestCursorSize(int preferredWidth, int preferredHeight) {
+    return cursorSizeConverter.getBestCursorSize(preferredWidth,
+        preferredHeight);
+  }
+
+  @Override
+  public int getMaximumCursorColors() {
+    return maximumCursorColors;
+  }
+
+  public void setMaximumCursorColors(int maximumCursorColors) {
+    this.maximumCursorColors = maximumCursorColors;
+  }
+
+  @Override
+  public AbstractMasterTimer getMasterTimer() {
+    return masterTimer;
+  }
+
+  @Override
+  public FontLoader getFontLoader() {
+    return new StubFontLoader();
+  }
+
+  @Override
+  public PGArc createPGArc() {
+    return new StubArc();
+  }
+
+  @Override
+  public PGCircle createPGCircle() {
+    return new StubCircle();
+  }
+
+  @Override
+  public PGCubicCurve createPGCubicCurve() {
+    return new StubCubicCurve();
+  }
+
+  @Override
+  public PGEllipse createPGEllipse() {
+    return new StubEllipse();
+  }
+
+  @Override
+  public PGLine createPGLine() {
+    return new StubLine();
+  }
+
+  @Override
+  public PGPath createPGPath() {
+    return new StubPath();
+  }
+
+  @Override
+  public PGPolygon createPGPolygon() {
+    return new StubPolygon();
+  }
+
+  @Override
+  public PGPolyline createPGPolyline() {
+    return new StubPolyline();
+  }
+
+  @Override
+  public PGQuadCurve createPGQuadCurve() {
+    return new StubQuadCurve();
+  }
+
+  @Override
+  public PGRectangle createPGRectangle() {
+    return new StubRectangle();
+  }
+
+  @Override
+  public PGImageView createPGImageView() {
+    return new StubImageView();
+  }
+
+  @Override
+  public PGMediaView createPGMediaView() {
+    return new StubMediaView();
+  }
+
+  @Override
+  public PGGroup createPGGroup() {
+    return new StubGroup();
+  }
+
+  @Override
+  public PGText createPGText() {
+    return new StubText();
+  }
+
+  /*
+   * additional testing functions
+   */
+  public void fireTestPulse() {
+    firePulse();
+  }
+
+  public boolean isPulseRequested() {
+    return pulseRequested;
+  }
+
+  public void clearPulseRequested() {
+    pulseRequested = false;
+  }
+
+  // do nothing -- bringing in FrameJob and MasterTimer also bring in
+  // Settings and crap which isn't setup for the testing stuff because
+  // we don't run through a RuntimeProvider or do normal startup
+  // public @Override public void triggerNextPulse():Void { }
+  @Override
+  public void requestNextPulse() {
+    pulseRequested = true;
+  }
+
+  private TKClipboard clipboard = new TKClipboard() {
+    private Map<DataFormat, Object> map = new HashMap<DataFormat, Object>();
+
+    @Override
+    public Set<DataFormat> getContentTypes() {
+      return map.keySet();
     }
 
     @Override
-    public void checkFxUserThread() {
-        // Do nothing
+    public boolean putContent(
+        @SuppressWarnings("unchecked") Pair<DataFormat, Object>... content) {
+      boolean good;
+      for (Pair<DataFormat, Object> pair : content) {
+        good = map.put(pair.getKey(), pair.getValue()) == pair.getValue();
+        if (!good)
+          return false;
+      }
+      return true;
     }
 
     @Override
-    public void defer(Runnable runnable) {
-        runnable.run();
+    public Object getContent(DataFormat dataFormat) {
+      return map.get(dataFormat);
     }
 
     @Override
-    public void exit() {
-        System.exit(0);
+    public boolean hasContent(DataFormat dataFormat) {
+      return map.containsKey(dataFormat);
     }
 
     @Override
-    public Map<Object, Object> getContextMap() {
-        return contextMap;
-    }
-
-    @Override public int getRefreshRate() {
-        return -1;
-    }
-
-    private DelayedRunnable animationRunnable;
-
-    @Override
-    public void setAnimationRunnable(DelayedRunnable animationRunnable) {
-        this.animationRunnable = animationRunnable;
+    public Set<TransferMode> getTransferModes() {
+      Set<TransferMode> modes = new HashSet<TransferMode>();
+      modes.add(TransferMode.COPY);
+      return modes;
     }
 
     @Override
-    public PerformanceTracker getPerformanceTracker() {
-        return performanceTracker;
+    public void initSecurityContext() {
     }
+  };
 
-    @Override public PerformanceTracker createPerformanceTracker() {
-        return new StubPerformanceTracker();
+  @Override
+  public TKClipboard getSystemClipboard() {
+    return clipboard;
+  }
+
+  @Override
+  public TKClipboard getNamedClipboard(String name) {
+    return null;
+  }
+
+  public @Override
+  Dragboard createDragboard() {
+    if (dndDelegate != null) {
+      return dndDelegate.createDragboard();
+    }
+    return null;
+  }
+
+  public @Override
+  DragEvent convertDragSourceEventToFX(Object event, Dragboard dragboard) {
+    if (dndDelegate != null) {
+      return dndDelegate.convertDragEventToFx(event, dragboard);
+    }
+    return null;
+  }
+
+  public @Override
+  DragEvent convertDropTargetEventToFX(Object event, Dragboard dragboard) {
+    if (dndDelegate != null) {
+      return dndDelegate.convertDragEventToFx(event, dragboard);
+    }
+    return null;
+  }
+
+  @Override
+  public void enableDrop(TKScene s, TKDropTargetListener l) {
+    if (dndDelegate != null) {
+      dndDelegate.enableDrop(l);
+    }
+  }
+
+  @Override
+  public DragEvent convertDragRecognizedEventToFX(Object event,
+      Dragboard dragboard) {
+    System.out
+        .println("Not implemented: StubToolkit.convertDragRecognizedEventToFX(Object):DragEvent");
+    return null;
+  }
+
+  private ScreenConfigurationAccessor accessor = new ScreenConfigurationAccessor() {
+    @Override
+    public int getMinX(Object obj) {
+      return ((ScreenConfiguration) obj).getMinX();
     }
 
     @Override
-    protected Object createColorPaint(Color paint) {
-        StubColor c = new StubColor(paint.getRed(),
-                    paint.getGreen(),
-                    paint.getBlue(),
-                    paint.getOpacity());
-        return c;
+    public int getMinY(Object obj) {
+      return ((ScreenConfiguration) obj).getMinY();
     }
 
     @Override
-    protected Object createLinearGradientPaint(LinearGradient paint) {
-        return new StubPaint();
+    public int getWidth(Object obj) {
+      return ((ScreenConfiguration) obj).getWidth();
     }
 
     @Override
-    protected Object createRadialGradientPaint(RadialGradient paint) {
-        return new StubPaint();
+    public int getHeight(Object obj) {
+      return ((ScreenConfiguration) obj).getHeight();
     }
 
     @Override
-    protected Object createImagePatternPaint(ImagePattern paint) {
-        return new StubPaint();
-    }
-
-    static BasicStroke tmpStroke = new BasicStroke();
-    void initStroke(StrokeType pgtype, double strokewidth,
-                    StrokeLineCap pgcap,
-                    StrokeLineJoin pgjoin, float miterLimit)
-    {
-        int type;
-        if (pgtype == StrokeType.CENTERED) {
-            type = BasicStroke.TYPE_CENTERED;
-        } else if (pgtype == StrokeType.INSIDE) {
-            type = BasicStroke.TYPE_INNER;
-        } else {
-            type = BasicStroke.TYPE_OUTER;
-        }
-
-        int cap;
-        if (pgcap == StrokeLineCap.BUTT) {
-            cap = BasicStroke.CAP_BUTT;
-        } else if (pgcap == StrokeLineCap.SQUARE) {
-            cap = BasicStroke.CAP_SQUARE;
-        } else {
-            cap = BasicStroke.CAP_ROUND;
-        }
-
-        int join;
-        if (pgjoin == StrokeLineJoin.BEVEL) {
-            join = BasicStroke.JOIN_BEVEL;
-        } else if (pgjoin == StrokeLineJoin.MITER) {
-            join = BasicStroke.JOIN_MITER;
-        } else {
-            join = BasicStroke.JOIN_ROUND;
-        }
-
-        tmpStroke.set(type, (float) strokewidth, cap, join, miterLimit);
+    public int getVisualMinX(Object obj) {
+      return ((ScreenConfiguration) obj).getVisualMinX();
     }
 
     @Override
-    public void accumulateStrokeBounds(Shape shape, float bbox[],
-                                       StrokeType pgtype,
-                                       double strokewidth,
-                                       StrokeLineCap pgcap,
-                                       StrokeLineJoin pgjoin,
-                                       float miterLimit,
-                                       BaseTransform tx)
-    {
-
-        initStroke(pgtype, strokewidth, pgcap, pgjoin, miterLimit);
-        // TODO: The accumulation could be done directly without creating a Shape
-        Shape.accumulate(bbox, tmpStroke.createStrokedShape(shape), tx);
+    public int getVisualMinY(Object obj) {
+      return ((ScreenConfiguration) obj).getVisualMinY();
     }
 
     @Override
-    public boolean strokeContains(Shape shape, double x, double y,
-                                  StrokeType pgtype,
-                                  double strokewidth,
-                                  StrokeLineCap pgcap,
-                                  StrokeLineJoin pgjoin,
-                                  float miterLimit)
-    {
-        initStroke(pgtype, strokewidth, pgcap, pgjoin, miterLimit);
-        // TODO: The contains testing could be done directly without creating a Shape
-        return tmpStroke.createStrokedShape(shape).contains((float) x, (float) y);
+    public int getVisualWidth(Object obj) {
+      return ((ScreenConfiguration) obj).getVisualWidth();
     }
 
     @Override
-    public Shape createStrokedShape(Shape shape,
-                                    StrokeType pgtype,
-                                    double strokewidth,
-                                    StrokeLineCap pgcap,
-                                    StrokeLineJoin pgjoin,
-                                    float miterLimit,
-                                    float[] dashArray,
-                                    float dashOffset) {
-        initStroke(pgtype, strokewidth, pgcap, pgjoin, miterLimit);
-        return tmpStroke.createStrokedShape(shape);
-    }
-
-    public CursorSizeConverter getCursorSizeConverter() {
-        return cursorSizeConverter;
-    }
-
-    public void setCursorSizeConverter(
-            CursorSizeConverter cursorSizeConverter) {
-        this.cursorSizeConverter = cursorSizeConverter;
+    public int getVisualHeight(Object obj) {
+      return ((ScreenConfiguration) obj).getVisualHeight();
     }
 
     @Override
-    public Dimension2D getBestCursorSize(int preferredWidth, int preferredHeight) {
-        return cursorSizeConverter.getBestCursorSize(preferredWidth,
-                                                     preferredHeight);
+    public float getDPI(Object obj) {
+      return ((ScreenConfiguration) obj).getDPI();
+    }
+  };
+
+  @Override
+  public ScreenConfigurationAccessor setScreenConfigurationListener(
+      TKScreenConfigurationListener listener) {
+    screenConfigurationListener = listener;
+    return accessor;
+  }
+
+  @Override
+  public ScreenConfiguration getPrimaryScreen() {
+    return screenConfigurations[0];
+  }
+
+  public void setScreens(ScreenConfiguration... screenConfigurations) {
+    this.screenConfigurations = screenConfigurations.clone();
+    if (screenConfigurationListener != null) {
+      screenConfigurationListener.screenConfigurationChanged();
+    }
+  }
+
+  public void resetScreens() {
+    setScreens(DEFAULT_SCREEN_CONFIG);
+  }
+
+  @Override
+  public List<ScreenConfiguration> getScreens() {
+    return Arrays.asList(screenConfigurations);
+  }
+
+  @Override
+  public void registerDragGestureListener(TKScene s, Set<TransferMode> tm,
+      TKDragGestureListener l) {
+    if (dndDelegate != null) {
+      dndDelegate.registerListener(l);
+    }
+  }
+
+  @Override
+  public void startDrag(Object o, Set<TransferMode> tm, TKDragSourceListener l,
+      Dragboard dragboard) {
+    if (dndDelegate != null) {
+      dndDelegate.startDrag(o, tm, l, dragboard);
+    }
+  }
+
+  @Override
+  public ImageLoader loadImage(String url, int width, int height,
+      boolean preserveRatio, boolean smooth) {
+    return imageLoaderFactory.createImageLoader(url, width, height,
+        preserveRatio, smooth);
+  }
+
+  @Override
+  public ImageLoader loadImage(InputStream stream, int width, int height,
+      boolean preserveRatio, boolean smooth) {
+    return imageLoaderFactory.createImageLoader(stream, width, height,
+        preserveRatio, smooth);
+  }
+
+  @Override
+  public AsyncOperation loadImageAsync(
+      @SuppressWarnings("rawtypes") AsyncOperationListener listener,
+      String url, int width, int height, boolean preserveRatio, boolean smooth) {
+    return imageLoaderFactory.createAsyncImageLoader(listener, url, width,
+        height, preserveRatio, smooth);
+  }
+
+  @Override
+  public ImageLoader loadPlatformImage(Object platformImage) {
+    return imageLoaderFactory.createImageLoader(platformImage, 0, 0, false,
+        false);
+  }
+
+  @Override
+  public PlatformImage createPlatformImage(int w, int h) {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  @Override
+  public void waitFor(Task t) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public int getKeyCodeForChar(String character) {
+    if (charToKeyCodeMap != null) {
+      final KeyCode keyCode = charToKeyCodeMap.get(character);
+      if (keyCode != null) {
+        return keyCode.impl_getCode();
+      }
+    }
+
+    return 0;
+  }
+
+  @Override
+  public MouseEvent convertMouseEventToFX(Object event) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public KeyEvent convertKeyEventToFX(Object event) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public InputMethodEvent convertInputMethodEventToFX(Object event) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public PathElement[] convertShapeToFXPath(Object shape) {
+    // Had to be mocked up for TextField tests (for the caret!)
+    // Since the "shape" could be anything, I'm just returning
+    // something here, doesn't matter what.
+    return new PathElement[0];
+  }
+
+  @Override
+  public HitInfo convertHitInfoToFX(Object hit) {
+    return (HitInfo) hit;
+  }
+
+  @Override
+  public Filterable toFilterable(Image img) {
+    return StubFilterable.create((StubPlatformImage) img
+        .impl_getPlatformImage());
+  }
+
+  @Override
+  public FilterContext getFilterContext(Object config) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public boolean isForwardTraversalKey(KeyEvent e) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public boolean isBackwardTraversalKey(KeyEvent e) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public PGSVGPath createPGSVGPath() {
+    return new StubSVGPath();
+  }
+
+  @Override
+  public PGRegion createPGRegion() {
+    return new StubRegion();
+  }
+
+  @Override
+  public Object createSVGPathObject(SVGPath svgpath) {
+    int windingRule = (svgpath.getFillRule() == FillRule.NON_ZERO) ? Path2D.WIND_NON_ZERO
+        : Path2D.WIND_EVEN_ODD;
+
+    return new StubSVGPath.SVGPathImpl(svgpath.getContent(), windingRule);
+  }
+
+  @Override
+  public Path2D createSVGPath2D(SVGPath svgpath) {
+    int windingRule = (svgpath.getFillRule() == FillRule.NON_ZERO) ? Path2D.WIND_NON_ZERO
+        : Path2D.WIND_EVEN_ODD;
+
+    return new StubSVGPath.SVGPathImpl(svgpath.getContent(), windingRule);
+  }
+
+  @Override
+  public boolean imageContains(Object image, float x, float y) {
+    return ((StubPlatformImage) image).getImageInfo()
+        .contains((int) x, (int) y);
+  }
+
+  public void setCurrentTime(long millis) {
+    masterTimer.setCurrentTime(millis);
+  }
+
+  public void handleAnimation() {
+    if (animationRunnable != null) {
+      try {
+        animationRunnable.run();
+      } catch (Throwable t) {
+        t.printStackTrace();
+      }
+    }
+  }
+
+  public StubImageLoaderFactory getImageLoaderFactory() {
+    return imageLoaderFactory;
+  }
+
+  public void setAnimationTime(final long millis) {
+    setCurrentTime(millis);
+    handleAnimation();
+    fireTestPulse();
+  }
+
+  @Override
+  public PerspectiveCameraImpl createPerspectiveCamera() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public ParallelCameraImpl createParallelCamera() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void installInputMethodRequests(TKScene scene,
+      InputMethodRequests requests) {
+    // just do nothing here.
+  }
+
+  private Map<String, KeyCode> charToKeyCodeMap;
+
+  public void setCharToKeyCodeMap(Map<String, KeyCode> charToKeyCodeMap) {
+    this.charToKeyCodeMap = charToKeyCodeMap;
+  }
+
+  @Override
+  public Object renderToImage(ImageRenderingContext context) {
+    throw new UnsupportedOperationException();
+  }
+
+  @SuppressWarnings("rawtypes")
+  public Class externalFormatClass = StubToolkit.class;
+
+  @Override
+  public boolean isExternalFormatSupported(
+      @SuppressWarnings("rawtypes") Class type) {
+    return externalFormatClass == type;
+  }
+
+  public Object toExternalImagePassword = "toExternalImage";
+
+  @Override
+  public Object toExternalImage(Object o, Object o1) {
+    return new Object[] { o, o1, toExternalImagePassword };
+  }
+
+  @Override
+  public Object enterNestedEventLoop(Object key) {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  @Override
+  public void exitNestedEventLoop(Object key, Object rval) {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  private KeyCode platformShortcutKey = KeyCode.SHORTCUT;
+
+  public void setPlatformShortcutKey(final KeyCode platformShortcutKey) {
+    this.platformShortcutKey = platformShortcutKey;
+  }
+
+  public KeyCode getPlatformShortcutKey() {
+    return platformShortcutKey;
+  }
+
+  private DndDelegate dndDelegate;
+
+  public void setDndDelegate(DndDelegate dndDelegate) {
+    this.dndDelegate = dndDelegate;
+  }
+
+  @Override
+  public PGCanvas createPGCanvas() {
+    return new StubCanvas();
+  }
+
+  public interface DndDelegate {
+    void startDrag(Object o, Set<TransferMode> tm, TKDragSourceListener l,
+        Dragboard dragboard);
+
+    Dragboard createDragboard();
+
+    DragEvent convertDragEventToFx(Object event, Dragboard dragboard);
+
+    void registerListener(TKDragGestureListener l);
+
+    void enableDrop(TKDropTargetListener l);
+  }
+
+  @Override
+  public List<File> showFileChooser(TKStage ownerWindow, String title,
+      File initialDirectory, FileChooserType fileChooserType,
+      List<ExtensionFilter> extensionFilters) {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  @Override
+  public File showDirectoryChooser(TKStage ownerWindow, String title,
+      File initialDirectory) {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  @Override
+  public long getMultiClickTime() {
+    return 500L;
+  }
+
+  @Override
+  public int getMultiClickMaxX() {
+    return 5;
+  }
+
+  @Override
+  public int getMultiClickMaxY() {
+    return 5;
+  }
+
+  public static final class ScreenConfiguration {
+    private final int minX;
+    private final int minY;
+    private final int width;
+    private final int height;
+    private final int visualMinX;
+    private final int visualMinY;
+    private final int visualWidth;
+    private final int visualHeight;
+    private final float dpi;
+
+    public ScreenConfiguration(final int minX, final int minY, final int width,
+        final int height, final int visualMinX, final int visualMinY,
+        final int visualWidth, final int visualHeight, final float dpi) {
+      this.minX = minX;
+      this.minY = minY;
+      this.width = width;
+      this.height = height;
+      this.visualMinX = visualMinX;
+      this.visualMinY = visualMinY;
+      this.visualWidth = visualWidth;
+      this.visualHeight = visualHeight;
+      this.dpi = dpi;
+    }
+
+    public int getMinX() {
+      return minX;
+    }
+
+    public int getMinY() {
+      return minY;
+    }
+
+    public int getWidth() {
+      return width;
+    }
+
+    public int getHeight() {
+      return height;
+    }
+
+    public int getVisualMinX() {
+      return visualMinX;
+    }
+
+    public int getVisualMinY() {
+      return visualMinY;
+    }
+
+    public int getVisualWidth() {
+      return visualWidth;
+    }
+
+    public int getVisualHeight() {
+      return visualHeight;
+    }
+
+    public float getDPI() {
+      return dpi;
+    }
+  }
+
+  public static class StubSystemMenu implements TKSystemMenu {
+
+    @Override
+    public boolean isSupported() {
+      return false;
     }
 
     @Override
-    public int getMaximumCursorColors() {
-        return maximumCursorColors;
+    public void setMenus(List<MenuBase> menus) {
+      throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public void setMaximumCursorColors(int maximumCursorColors) {
-        this.maximumCursorColors = maximumCursorColors;
-    }
-
-    @Override
-    public AbstractMasterTimer getMasterTimer() {
-        return masterTimer;
-    }
-
-    @Override
-    public FontLoader getFontLoader() {
-        return new StubFontLoader();
-    }
-
-    @Override public PGArc createPGArc() {
-        return new StubArc();
-    }
-
-    @Override public PGCircle createPGCircle() {
-        return new StubCircle();
-    }
-
-    @Override public PGCubicCurve createPGCubicCurve() {
-        return new StubCubicCurve();
-    }
-
-    @Override public PGEllipse createPGEllipse() {
-        return new StubEllipse();
-    }
-
-    @Override public PGLine createPGLine() {
-        return new StubLine();
-    }
-
-    @Override public PGPath createPGPath() {
-        return new StubPath();
-    }
-
-    @Override public PGPolygon createPGPolygon() {
-        return new StubPolygon();
-    }
-
-    @Override public PGPolyline createPGPolyline() {
-        return new StubPolyline();
-    }
-
-    @Override public PGQuadCurve createPGQuadCurve() {
-        return new StubQuadCurve();
-    }
-
-    @Override public PGRectangle createPGRectangle() {
-        return new StubRectangle();
-    }
-
-    @Override public PGImageView createPGImageView() {
-        return new StubImageView();
-    }
-
-    @Override public PGMediaView createPGMediaView() {
-        return new StubMediaView();
-    }
-
-    @Override public PGGroup createPGGroup() {
-        return new StubGroup();
-    }
-
-    @Override public PGText createPGText() {
-        return new StubText();
-    }
-
-    /*
-     * additional testing functions
-     */
-    public void fireTestPulse() {
-        firePulse();
-    }
-
-   public boolean isPulseRequested() {
-        return pulseRequested;
-    }
-
-    public void clearPulseRequested() {
-        pulseRequested = false;
-    }
-
-    // do nothing -- bringing in FrameJob and MasterTimer also bring in
-    // Settings and crap which isn't setup for the testing stuff because
-    // we don't run through a RuntimeProvider or do normal startup
-    // public @Override public void triggerNextPulse():Void { }
-    @Override public void requestNextPulse() {
-        pulseRequested = true;
-    }
-
-    private TKClipboard clipboard = new TKClipboard() {
-        private Map<DataFormat, Object> map = new HashMap<DataFormat, Object>();
-        @Override public Set<DataFormat> getContentTypes() {
-            return map.keySet();
-        }
-
-        @Override public boolean putContent(@SuppressWarnings("unchecked") Pair<DataFormat, Object>... content) {
-            boolean good;
-            for (Pair<DataFormat,Object> pair : content) {
-                good = map.put(pair.getKey(), pair.getValue()) == pair.getValue();
-                if (!good) return false;
-            }
-            return true;
-        }
-
-        @Override public Object getContent(DataFormat dataFormat) {
-            return map.get(dataFormat);
-        }
-
-        @Override public boolean hasContent(DataFormat dataFormat) {
-            return map.containsKey(dataFormat);
-        }
-
-        @Override public Set<TransferMode> getTransferModes() {
-            Set<TransferMode> modes = new HashSet<TransferMode>();
-            modes.add(TransferMode.COPY);
-            return modes;
-        }
-    
-        @Override public void initSecurityContext() {
-        }
-    };
-
-
-    @Override
-    public TKClipboard getSystemClipboard() {
-        return clipboard;
-    }
-
-    @Override public TKClipboard getNamedClipboard(String name) {
-        return null;
-    }
-
-    public @Override
-    Dragboard createDragboard() {
-        if (dndDelegate != null) {
-            return dndDelegate.createDragboard();
-        }
-        return null;
-    }
-
-    public @Override
-    DragEvent convertDragSourceEventToFX(Object event, Dragboard dragboard) {
-        if (dndDelegate != null) {
-            return dndDelegate.convertDragEventToFx(event, dragboard);
-        }
-        return null;
-    }
-
-    public @Override
-    DragEvent convertDropTargetEventToFX(Object event, Dragboard dragboard) {
-        if (dndDelegate != null) {
-            return dndDelegate.convertDragEventToFx(event, dragboard);
-        }
-        return null;
-    }
-
-    @Override
-    public void enableDrop(TKScene s, TKDropTargetListener l) {
-        if (dndDelegate != null) {
-            dndDelegate.enableDrop(l);
-        }
-    }
-
-    @Override
-    public DragEvent convertDragRecognizedEventToFX(Object event,
-            Dragboard dragboard) {
-        System.out
-                .println("Not implemented: StubToolkit.convertDragRecognizedEventToFX(Object):DragEvent");
-        return null;
-    }
-
-    private ScreenConfigurationAccessor accessor = new ScreenConfigurationAccessor() {
-        @Override
-        public int getMinX(Object obj) {
-            return ((ScreenConfiguration) obj).getMinX();
-        }
-
-        @Override
-        public int getMinY(Object obj) {
-            return ((ScreenConfiguration) obj).getMinY();
-        }
-
-        @Override
-        public int getWidth(Object obj) {
-            return ((ScreenConfiguration) obj).getWidth();
-        }
-
-        @Override
-        public int getHeight(Object obj) {
-            return ((ScreenConfiguration) obj).getHeight();
-        }
-
-        @Override
-        public int getVisualMinX(Object obj) {
-            return ((ScreenConfiguration) obj).getVisualMinX();
-        }
-
-        @Override
-        public int getVisualMinY(Object obj) {
-            return ((ScreenConfiguration) obj).getVisualMinY();
-        }
-
-        @Override
-        public int getVisualWidth(Object obj) {
-            return ((ScreenConfiguration) obj).getVisualWidth();
-        }
-
-        @Override
-        public int getVisualHeight(Object obj) {
-            return ((ScreenConfiguration) obj).getVisualHeight();
-        }
-
-        @Override
-        public float getDPI(Object obj) {
-            return ((ScreenConfiguration) obj).getDPI();
-        }
-    };
-
-    @Override
-    public ScreenConfigurationAccessor setScreenConfigurationListener(
-            TKScreenConfigurationListener listener) {
-        screenConfigurationListener = listener;
-        return accessor;
-    }
-
-    @Override
-    public ScreenConfiguration getPrimaryScreen() {
-        return screenConfigurations[0];
-    }
-
-    public void setScreens(ScreenConfiguration... screenConfigurations) {
-        this.screenConfigurations = screenConfigurations.clone();
-        if (screenConfigurationListener != null) {
-            screenConfigurationListener.screenConfigurationChanged();
-        }
-    }
-
-    public void resetScreens() {
-        setScreens(DEFAULT_SCREEN_CONFIG);
-    }
-
-    @Override
-    public List<ScreenConfiguration> getScreens() {
-        return Arrays.asList(screenConfigurations);
-    }
-
-    @Override public void registerDragGestureListener(TKScene s, Set<TransferMode> tm, TKDragGestureListener l) {
-        if (dndDelegate != null) {
-            dndDelegate.registerListener(l);
-        }
-    }
-
-    @Override public void startDrag(Object o, Set<TransferMode> tm, TKDragSourceListener l, Dragboard dragboard) {
-        if (dndDelegate != null) {
-            dndDelegate.startDrag(o, tm, l, dragboard);
-        }
-    }
-
-    @Override
-    public ImageLoader loadImage(String url, int width, int height,
-            boolean preserveRatio, boolean smooth) {
-        return imageLoaderFactory.createImageLoader(url, width, height,
-                                                    preserveRatio, smooth);
-    }
-
-    @Override
-    public ImageLoader loadImage(InputStream stream, int width, int height,
-            boolean preserveRatio, boolean smooth) {
-        return imageLoaderFactory.createImageLoader(stream, width, height,
-                                                    preserveRatio, smooth);
-    }
-
-    @Override
-    public AsyncOperation loadImageAsync(
-            @SuppressWarnings("rawtypes") AsyncOperationListener listener, String url, int width, int height,
-            boolean preserveRatio, boolean smooth) {
-        return imageLoaderFactory.createAsyncImageLoader(
-                listener, url, width, height, preserveRatio, smooth);
-    }
-
-    @Override
-    public ImageLoader loadPlatformImage(Object platformImage) {
-        return imageLoaderFactory.createImageLoader(platformImage,
-                                                    0, 0, false, false);
-    }
-
-    @Override
-    public PlatformImage createPlatformImage(int w, int h) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public void waitFor(Task t) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public int getKeyCodeForChar(String character) {
-        if (charToKeyCodeMap != null) {
-            final KeyCode keyCode = charToKeyCodeMap.get(character);
-            if (keyCode != null) {
-                return keyCode.impl_getCode();
-            }
-        }
-
-        return 0;
-    }
-
-    @Override
-    public MouseEvent convertMouseEventToFX(Object event) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public KeyEvent convertKeyEventToFX(Object event) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public InputMethodEvent convertInputMethodEventToFX(Object event) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public PathElement[] convertShapeToFXPath(Object shape) {
-        // Had to be mocked up for TextField tests (for the caret!)
-        // Since the "shape" could be anything, I'm just returning
-        // something here, doesn't matter what.
-        return new PathElement[0];
-    }
-
-    @Override
-    public HitInfo convertHitInfoToFX(Object hit) {
-        return (HitInfo) hit;
-    }
-
-    @Override
-    public Filterable toFilterable(Image img) {
-        return StubFilterable.create((StubPlatformImage)img.impl_getPlatformImage());
-    }
-
-    @Override
-    public FilterContext getFilterContext(Object config) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean isForwardTraversalKey(KeyEvent e) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean isBackwardTraversalKey(KeyEvent e) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public PGSVGPath createPGSVGPath() {
-        return new StubSVGPath();
-    }
-
-    @Override
-    public PGRegion createPGRegion() {
-        return new StubRegion();
-    }
-
-    @Override
-    public Object createSVGPathObject(SVGPath svgpath) {
-        int windingRule = (svgpath.getFillRule() == FillRule.NON_ZERO) ?
-                           Path2D.WIND_NON_ZERO : Path2D.WIND_EVEN_ODD;
-
-        return new StubSVGPath.SVGPathImpl(svgpath.getContent(), windingRule);
-    }
-
-    @Override
-    public Path2D createSVGPath2D(SVGPath svgpath) {
-        int windingRule = (svgpath.getFillRule() == FillRule.NON_ZERO) ?
-                           Path2D.WIND_NON_ZERO : Path2D.WIND_EVEN_ODD;
-
-        return new StubSVGPath.SVGPathImpl(svgpath.getContent(), windingRule);
-    }
-
-    @Override
-    public boolean imageContains(Object image, float x, float y) {
-        return ((StubPlatformImage) image).getImageInfo()
-                                          .contains((int) x, (int) y);
-    }
-
-    public void setCurrentTime(long millis) {
-        masterTimer.setCurrentTime(millis);
-    }
-
-    public void handleAnimation() {
-        if (animationRunnable != null) {
-            try {
-                animationRunnable.run();
-            } catch (Throwable t) {
-                t.printStackTrace();
-            }
-        }
-    }
-
-    public StubImageLoaderFactory getImageLoaderFactory() {
-        return imageLoaderFactory;
-    }
-
-    public void setAnimationTime(final long millis) {
-        setCurrentTime(millis);
-        handleAnimation();
-        fireTestPulse();
-    }
-
-    @Override
-    public PerspectiveCameraImpl createPerspectiveCamera() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public ParallelCameraImpl createParallelCamera() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void installInputMethodRequests(TKScene scene, InputMethodRequests requests) {
-        // just do nothing here.
-    }
-
-    private Map<String, KeyCode> charToKeyCodeMap;
-
-    public void setCharToKeyCodeMap(Map<String, KeyCode> charToKeyCodeMap) {
-        this.charToKeyCodeMap = charToKeyCodeMap;
-    }
-
-    @Override
-    public Object renderToImage(ImageRenderingContext context) {
-        throw new UnsupportedOperationException();
-    }
-
-    @SuppressWarnings("rawtypes")
-    public Class externalFormatClass = StubToolkit.class;
-
-    @Override
-    public boolean isExternalFormatSupported(@SuppressWarnings("rawtypes") Class type) {
-        return externalFormatClass == type;
-    }
-
-    public Object toExternalImagePassword = "toExternalImage";
-    @Override
-    public Object toExternalImage(Object o, Object o1) {
-        return new Object [] { o, o1, toExternalImagePassword };
-    }
-
-    @Override public Object enterNestedEventLoop(Object key) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override public void exitNestedEventLoop(Object key, Object rval) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    private KeyCode platformShortcutKey = KeyCode.SHORTCUT;
-
-    public void setPlatformShortcutKey(final KeyCode platformShortcutKey) {
-        this.platformShortcutKey = platformShortcutKey;
-    }
-
-    public KeyCode getPlatformShortcutKey() {
-        return platformShortcutKey;
-    }
-
-    private DndDelegate dndDelegate;
-    public void setDndDelegate(DndDelegate dndDelegate) {
-        this.dndDelegate = dndDelegate;
-    }
-
-    @Override
-    public PGCanvas createPGCanvas() {
-        return new StubCanvas();
-    }
-
-    public interface DndDelegate {
-        void startDrag(Object o, Set<TransferMode> tm,
-                TKDragSourceListener l, Dragboard dragboard);
-
-        Dragboard createDragboard();
-
-        DragEvent convertDragEventToFx(Object event, Dragboard dragboard);
-
-        void registerListener(TKDragGestureListener l);
-
-        void enableDrop(TKDropTargetListener l);
-    }
-
-    @Override
-    public List<File> showFileChooser(TKStage ownerWindow,
-                                      String title,
-                                      File initialDirectory,
-                                      FileChooserType fileChooserType,
-                                      List<ExtensionFilter> extensionFilters) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-
-    @Override
-    public File showDirectoryChooser(TKStage ownerWindow,
-                                     String title,
-                                     File initialDirectory) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public long getMultiClickTime() {
-        return 500L;
-    }
-
-    @Override
-    public int getMultiClickMaxX() {
-        return 5;
-    }
-
-    @Override
-    public int getMultiClickMaxY() {
-        return 5;
-    }
-
-    public static final class ScreenConfiguration {
-        private final int minX;
-        private final int minY;
-        private final int width;
-        private final int height;
-        private final int visualMinX;
-        private final int visualMinY;
-        private final int visualWidth;
-        private final int visualHeight;
-        private final float dpi;
-
-        public ScreenConfiguration(final int minX, final int minY,
-                                   final int width, final int height,
-                                   final int visualMinX,
-                                   final int visualMinY,
-                                   final int visualWidth,
-                                   final int visualHeight,
-                                   final float dpi) {
-            this.minX = minX;
-            this.minY = minY;
-            this.width = width;
-            this.height = height;
-            this.visualMinX = visualMinX;
-            this.visualMinY = visualMinY;
-            this.visualWidth = visualWidth;
-            this.visualHeight = visualHeight;
-            this.dpi = dpi;
-        }
-
-        public int getMinX() {
-            return minX;
-        }
-
-        public int getMinY() {
-            return minY;
-        }
-
-        public int getWidth() {
-            return width;
-        }
-
-        public int getHeight() {
-            return height;
-        }
-
-        public int getVisualMinX() {
-            return visualMinX;
-        }
-
-        public int getVisualMinY() {
-            return visualMinY;
-        }
-
-        public int getVisualWidth() {
-            return visualWidth;
-        }
-
-        public int getVisualHeight() {
-            return visualHeight;
-        }
-
-        public float getDPI() {
-            return dpi;
-        }
-    }
-    
-    public static class StubSystemMenu implements TKSystemMenu {
-
-        @Override
-        public boolean isSupported() {
-            return false;
-        }
-
-        @Override
-        public void setMenus(List<MenuBase> menus) {
-            throw new UnsupportedOperationException("Not supported yet.");
-        }
-
-    }
+  }
 }

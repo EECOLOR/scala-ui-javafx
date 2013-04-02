@@ -3,7 +3,7 @@ package ee.ui.display
 import org.specs2.mutable.Specification
 import utils.SignatureTest
 import com.sun.javafx.tk.TKStage
-import com.sun.javafx.pgstub.StubStage
+import test.toolkit.StubStage
 
 object JavaFxWindowTest extends Specification {
   "JavaFxWindow" should {

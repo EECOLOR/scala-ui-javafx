@@ -8,6 +8,7 @@ object LibraryBuild extends Build {
   val appVersion = "1.0"
 
   val appDependencies = Seq(
+      //libraryDependencies += "com.typesafe" %% "scalalogging-slf4j" % "1.0.1"
     "org.specs2" % "specs2_2.10" % "1.13" % "test",
     "org.mockito" % "mockito-all" % "1.9.5" % "test")
 
@@ -19,7 +20,8 @@ object LibraryBuild extends Build {
     fork := true,
     resolvers ++= Seq("snapshots" at "http://oss.sonatype.org/content/repositories/snapshots",
       "releases" at "http://oss.sonatype.org/content/repositories/releases"),
-    javaOptions in (Test) += "-Djavafx.toolkit=com.sun.javafx.pgstub.StubToolkit"//,
+    //javaOptions in (Test) += "-Djavafx.toolkit=com.sun.javafx.pgstub.StubToolkit"//,
+    javaOptions in (Test) += "-Djavafx.toolkit=test.toolkit.StubToolkit"//,
     //javaOptions in (Test) += "-Xdebug",
     //javaOptions in (Test) += "-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005"
     )
