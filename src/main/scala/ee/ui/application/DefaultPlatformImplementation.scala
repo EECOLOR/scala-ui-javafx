@@ -21,33 +21,33 @@ class DefaultPlatformImplementation extends PlatformImplementation with Toolkit 
   windowCount.change {
     case Some(count) if (count == 0) => ReadOnlySignal.fire(onIdle)(RestrictedAccess)
     case _ =>
-  }  
-  
+  }
+
   val started = Property(false)
-  
-  protected def r(code: => Unit):Runnable =
+
+  protected def r(code: => Unit): Runnable =
     new Runnable {
       def run = code
     }
 
-  def defer(code: => Unit) = 
+  def defer(code: => Unit) =
     // if we are on the correct thread we can execute the code directly
     if (toolkit.isFxUserThread) code
-    else toolkit defer r(code) 
-  
+    else toolkit defer r(code)
+
   def run(code: => Unit) = defer(code)
-    
+
+  val toolkitListener =
+    new TKListener {
+      def changedTopLevelWindows(windows: JavaList[TKStage]) =
+        windowCount.value = Some(windows.size)
+    }
 
   def startup(callback: => Unit) = {
 
     require(!started, "Platform was already started")
-    
-    val toolkitListener =
-      new TKListener() {
-        def changedTopLevelWindows(windows: JavaList[TKStage]) =
-          windowCount.value = Some(windows.size)
-      }
-    toolkit.addTkListener(toolkitListener);
+
+    toolkit.addTkListener(toolkitListener)
 
     toolkit.startup(r(callback))
 
@@ -67,8 +67,13 @@ class DefaultPlatformImplementation extends PlatformImplementation with Toolkit 
   }
 
   def exit() = {
+    runAndWait {
+      toolkit.exit()
+    }
+
+    toolkit.removeTkListener(toolkitListener)
+    
     started.value = false
-    toolkit.exit()
   }
 
 }

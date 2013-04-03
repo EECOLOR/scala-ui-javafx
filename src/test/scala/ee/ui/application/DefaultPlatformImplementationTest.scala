@@ -100,5 +100,27 @@ class DefaultPlatformImplementationTest extends Specification with ThreadUtils w
 
       !waiting
     }
+    "not signal onIdle when exit has been called" in {
+      var idleCalled = false
+
+      platformImplementation startup {}
+
+      val subscription =
+        platformImplementation onIdle {
+          idleCalled = true
+        }
+
+      platformImplementation.exit()
+      
+      /*
+       * In order for idle to trigger, we need to open and close a window
+       */
+      toolkit.notifyWindowListeners(List[TKStage](new StubStage).asJava)
+      toolkit.notifyWindowListeners(List.empty[TKStage].asJava)
+
+      subscription.unsubscribe()
+
+      !idleCalled
+    }
   }
 }
