@@ -2,18 +2,18 @@ package test.toolkit
 
 import com.sun.javafx.tk.Toolkit
 import java.util.concurrent.atomic.AtomicBoolean
+import javafx.stage.StageStyle
+import javafx.stage.Modality
+import com.sun.javafx.tk.TKStage
+import org.specs2.mock.Mockito
 
 object StubToolkit extends StubToolkit {
   def setFxUserThread(t: Thread) = Toolkit.setFxUserThread(t)
 }
 
-class StubToolkit extends Toolkit {
+class StubToolkit extends Toolkit with Mockito {
 
-  case class MethodsCalled(
-    defer: Boolean = false,
-    exit: Boolean = false)
-
-  var methodsCalled = MethodsCalled()
+  val shadowMock = mock[StubToolkit].smart
 
   val applicationThread = new ApplicationThread
 
@@ -22,9 +22,9 @@ class StubToolkit extends Toolkit {
   val started = new AtomicBoolean(false)
 
   def startup(r: Runnable): Unit = {
-    if (started.getAndSet(true)) throw new RuntimeException("Can not start, already started, call exit first")
+    shadowMock startup r
     
-    methodsCalled = MethodsCalled()
+    if (started.getAndSet(true)) throw new RuntimeException("Can not start, already started, call exit first")
     
     applicationThread run {
       StubToolkit.setFxUserThread(Thread.currentThread)
@@ -33,20 +33,30 @@ class StubToolkit extends Toolkit {
   }
 
   def defer(r: Runnable): Unit = {
-    methodsCalled = methodsCalled.copy(defer = true)
+    shadowMock defer r
+    
     applicationThread run {
       r.run
     }
   }
 
   override def exit() = {
-    methodsCalled = methodsCalled.copy(exit = true)
+    shadowMock.exit()
+    
     super.exit()
     started.set(false)
   }
 
-  def createTKStage(style: javafx.stage.StageStyle): com.sun.javafx.tk.TKStage = new StubStage
-
+  def createTKStage(
+      stageStyle: StageStyle, 
+      primary: Boolean, 
+      modality: Modality, 
+      ownerStage: TKStage): TKStage = {
+    shadowMock.createTKStage(stageStyle, primary, modality, ownerStage)
+    
+    spy(new StubStage)
+  }
+  
   def waitFor(x$1: com.sun.javafx.tk.Toolkit.Task): Unit = ???
 
   def enterNestedEventLoop(x$1: Any): Object = ???
@@ -113,7 +123,7 @@ class StubToolkit extends Toolkit {
 
   def createTKEmbeddedStage(x$1: com.sun.javafx.embed.HostInterface): com.sun.javafx.tk.TKStage = ???
   def createTKPopupStage(x$1: javafx.stage.StageStyle, x$2: Any): com.sun.javafx.tk.TKStage = ???
-  def createTKStage(x$1: javafx.stage.StageStyle, x$2: Boolean, x$3: javafx.stage.Modality, x$4: com.sun.javafx.tk.TKStage): com.sun.javafx.tk.TKStage = ???
+  def createTKStage(style: javafx.stage.StageStyle): com.sun.javafx.tk.TKStage = ???
 
   def getBestCursorSize(x$1: Int, x$2: Int): javafx.geometry.Dimension2D = ???
 

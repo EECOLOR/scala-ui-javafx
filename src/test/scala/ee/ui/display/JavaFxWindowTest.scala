@@ -4,24 +4,34 @@ import org.specs2.mutable.Specification
 import utils.SignatureTest
 import com.sun.javafx.tk.TKStage
 import test.toolkit.StubStage
+import ee.ui.implementation.Toolkit
+import ee.ui.implementation.StubToolkit
+import org.specs2.mock.Mockito
+import javafx.stage.StageStyle
+import javafx.stage.Modality
 
-object JavaFxWindowTest extends Specification {
+class JavaFxWindowTest extends Specification with StubToolkit with Mockito {
+  sequential
+  isolated
+  
+  def javaFxWindow(window:Window):JavaFxWindow = new JavaFxWindow(window = window)
+  val javaFxWindow:JavaFxWindow = javaFxWindow(new Window)
+  
   "JavaFxWindow" should {
-    "represent a window" in {
-      new JavaFxWindow(window = new Window)
-      ok
-    }
     "have a TK representation" in {
       SignatureTest[JavaFxWindow, TKStage](_.internalWindow)
+    }
+    "call the toolkit to create a TK representation" resetToolkitMock {
+      javaFxWindow.internalWindow
+      there was one(stubToolkitMock).createTKStage(StageStyle.DECORATED, true, Modality.NONE, null)
     }
     "have a show method which should" in {
       "have the corect signature" in {
         SignatureTest[JavaFxWindow, Unit](_.show())
       }
       "set visible to true of the internal window" in {
-        val javaFxWindow = new JavaFxWindow(new Window)
         javaFxWindow.show()
-        javaFxWindow.internalWindow.asInstanceOf[StubStage].visible
+        there was one(javaFxWindow.internalWindow).setVisible(true)
       }
     }
     "have a hide method which should" in {
@@ -29,10 +39,16 @@ object JavaFxWindowTest extends Specification {
         SignatureTest[JavaFxWindow, Unit](_.hide())
       }
       "set visible to false of the internal window" in {
-        val javaFxWindow = new JavaFxWindow(new Window)
         javaFxWindow.hide()
-        !javaFxWindow.internalWindow.asInstanceOf[StubStage].visible
+        there was one(javaFxWindow.internalWindow).setVisible(false)
       }
+    }
+    "was a call to setTitle of the stage" in {
+      val title = "test"
+      val window = new Window
+      window.title = title
+      val fxWindow = javaFxWindow(window)
+      there was one(fxWindow.internalWindow).setTitle(title)
     }
   }
 }

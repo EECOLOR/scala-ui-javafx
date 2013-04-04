@@ -3,7 +3,9 @@ package test.toolkit
 import com.sun.javafx.tk.TKStage
 
 class StubStage extends TKStage {
-  var visible:Boolean = false
+  
+  def setVisible(value: Boolean): Unit = {}
+  def setTitle(title: String): Unit = {}
   
   def close(): Unit = ???
   def createTKScene(x$1: Boolean): com.sun.javafx.tk.TKScene = ???
@@ -22,8 +24,6 @@ class StubStage extends TKStage {
   def setResizable(x$1: Boolean): Unit = ???
   def setScene(x$1: com.sun.javafx.tk.TKScene): Unit = ???
   def setTKStageListener(x$1: com.sun.javafx.tk.TKStageListener): Unit = ???
-  def setTitle(x$1: String): Unit = ???
-  def setVisible(value: Boolean): Unit = visible = value
   def toBack(): Unit = ???
   def toFront(): Unit = ???
   def ungrabFocus(): Unit = ???
