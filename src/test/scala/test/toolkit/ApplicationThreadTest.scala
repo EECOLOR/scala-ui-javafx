@@ -9,6 +9,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object ApplicationThreadTest extends Specification with ThreadUtils with NoTimeConversions {
 
+  xonly
+  
   "ApplicationThread" should {
     "be able to run multiple pieces of code in a thread" in {
       val correctChildThreadName1 = WaitingBoolean(false, 1.second)

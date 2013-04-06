@@ -9,14 +9,16 @@ import ee.ui.implementation.StubToolkit
 import org.specs2.mock.Mockito
 import javafx.stage.StageStyle
 import javafx.stage.Modality
+import scala.util.Random
 
 class JavaFxWindowTest extends Specification with StubToolkit with Mockito {
   sequential
   isolated
-  
-  def javaFxWindow(window:Window):JavaFxWindow = new JavaFxWindow(window = window)
-  val javaFxWindow:JavaFxWindow = javaFxWindow(new Window)
-  
+  xonly
+
+  def javaFxWindow(window: Window): JavaFxWindow = new JavaFxWindow(window = window)
+  val javaFxWindow: JavaFxWindow = javaFxWindow(new Window)
+
   "JavaFxWindow" should {
     "have a TK representation" in {
       SignatureTest[JavaFxWindow, TKStage](_.internalWindow)
@@ -44,11 +46,27 @@ class JavaFxWindowTest extends Specification with StubToolkit with Mockito {
       }
     }
     "was a call to setTitle of the stage" in {
-      val title = "test"
-      val window = new Window
-      window.title = title
+      val t = "test"
+      val window = new Window {
+        title = t
+      }
       val fxWindow = javaFxWindow(window)
-      there was one(fxWindow.internalWindow).setTitle(title)
+      there was one(fxWindow.internalWindow).setTitle(t)
+    }
+    "set the correct size" in {
+      val w1 = Random.nextInt
+      val w2 = Random.nextInt
+      val h1 = Random.nextInt
+      val h2 = Random.nextInt
+      val window = new Window {
+        width = w1
+        height = h1
+      }
+      val fxWindow = javaFxWindow(window)
+      there was one(fxWindow.internalWindow).setBounds(0f, 0f, true, true, w1, h1, -1f, -1f, 0f, 0f)
+      window.width = w2
+      window.height = h2
+      there was one(fxWindow.internalWindow).setBounds(0f, 0f, true, true, w2, h2, -1f, -1f, 0f, 0f)
     }
   }
 }

@@ -16,6 +16,8 @@ import org.specs2.specification.Scope
 
 object DefaultWindowImplementationHandlerTest extends Specification with Mockito {
 
+  xonly
+  
   trait test extends Scope {
     val implHandler = new DefaultWindowImplementationHandler
     def storedWindows = implHandler.windows

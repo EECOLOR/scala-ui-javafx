@@ -14,6 +14,7 @@ import ee.ui.members.ReadOnlySignal
 class PlatformImplementationTest extends Specification with NoTimeConversions with ThreadUtils {
 
   isolated
+  xonly
 
   "PlatformImplementation" should {
     "have a startup method with a callback" in {

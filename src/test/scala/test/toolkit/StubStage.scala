@@ -6,6 +6,10 @@ class StubStage extends TKStage {
   
   def setVisible(value: Boolean): Unit = {}
   def setTitle(title: String): Unit = {}
+  def setBounds(
+      x: Float, y: Float, xSet: Boolean, ySet: Boolean, 
+      width: Float, height: Float, contentWidth: Float, contentHeight: Float, 
+      xGravity: Float, yGravity: Float): Unit = {}
   
   def close(): Unit = ???
   def createTKScene(x$1: Boolean): com.sun.javafx.tk.TKScene = ???
@@ -13,7 +17,6 @@ class StubStage extends TKStage {
   def initSecurityContext(): Unit = ???
   def requestFocus(x$1: com.sun.javafx.tk.FocusCause): Unit = ???
   def requestFocus(): Unit = ???
-  def setBounds(x$1: Float, x$2: Float, x$3: Boolean, x$4: Boolean, x$5: Float, x$6: Float, x$7: Float, x$8: Float, x$9: Float, x$10: Float): Unit = ???
   def setFullScreen(x$1: Boolean): Unit = ???
   def setIconified(x$1: Boolean): Unit = ???
   def setIcons(x$1: java.util.List[_]): Unit = ???

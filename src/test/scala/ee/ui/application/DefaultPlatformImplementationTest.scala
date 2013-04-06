@@ -21,6 +21,7 @@ class DefaultPlatformImplementationTest extends Specification with ThreadUtils w
    */
   sequential
   isolated
+  xonly
 
   val platformImplementation = new DefaultPlatformImplementation
 

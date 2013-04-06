@@ -21,7 +21,9 @@ import ee.ui.implementation.Toolkit
 import scala.collection.JavaConverters._
 
 class JavaFxApplicationLauncherTest extends Specification with NoTimeConversions with ApplicationLauncherUtils with Toolkit with Mockito {
+  
   sequential
+  xonly
 
   "JavaFxApplicationLauncher" should {
     "have a platform implmentation" in {
