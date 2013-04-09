@@ -4,17 +4,22 @@ import ee.ui.display.Window
 import scala.collection.mutable
 import ee.ui.display.JavaFxWindow
 import ee.ui.display.JavaFxWindow
+import ee.ui.implementation.contracts.WindowContract
+import ee.ui.implementation.contracts.WindowContract
+import ee.ui.implementation.contracts.WindowContract
 
 class DefaultWindowImplementationHandler extends WindowImplementationHandler {
-  val createWindow:Window => JavaFxWindow = JavaFxWindow
+  val createWindow:WindowContract => JavaFxWindow = JavaFxWindow
   
-  def hide(window: Window): Unit = {
-    this(window).hide()
-    windows -= window
+  def hide(windowContract: WindowContract): Unit = {
+    this(windowContract).hide()
+    windowContracts -= windowContract
   }
-  def show(window: Window): Unit = this(window).show()
+  def show(windowContract: WindowContract): Unit = this(windowContract).show()
   
-  lazy val windows = mutable.Map.empty[Window, JavaFxWindow].withDefault(createWindow)
+  lazy val windowContracts = 
+    mutable.Map.empty[WindowContract, JavaFxWindow].withDefault(createWindow)
   
-  def apply(window:Window) = windows.getOrElseUpdate(window, windows(window))
+  def apply(windowContract:WindowContract) = 
+    windowContracts.getOrElseUpdate(windowContract, windowContracts(windowContract))
 }

@@ -3,16 +3,14 @@ package ee.ui.implementation
 import org.specs2.mutable.Specification
 import ee.ui.display.Window
 import ee.ui.display.JavaFxWindow
-import ee.ui.display.JavaFxWindow
 import org.specs2.mock.Mockito
-import ee.ui.display.JavaFxWindow
-import ee.ui.display.JavaFxWindow
 import utils.SubtypeTest
 import utils.SignatureTest
-import ee.ui.display.JavaFxWindow
-import ee.ui.display.JavaFxWindow
 import scala.collection.mutable.MapLike
 import org.specs2.specification.Scope
+import ee.ui.implementation.contracts.WindowContract
+import ee.ui.implementation.contracts.WindowContract
+import ee.ui.implementation.contracts.WindowContract
 
 object DefaultWindowImplementationHandlerTest extends Specification with Mockito {
 
@@ -20,8 +18,8 @@ object DefaultWindowImplementationHandlerTest extends Specification with Mockito
   
   trait test extends Scope {
     val implHandler = new DefaultWindowImplementationHandler
-    def storedWindows = implHandler.windows
-    val window = new Window
+    def storedWindows = implHandler.windowContracts
+    val windowContract = WindowContract(new Window)
   } 
 
   "DefaultWindowImplementationHandler" should {
@@ -29,41 +27,41 @@ object DefaultWindowImplementationHandlerTest extends Specification with Mockito
       SubtypeTest[DefaultWindowImplementationHandler <:< WindowImplementationHandler]
     }
     "have a factory method for JavaFxWindow" in new test {
-      SignatureTest[DefaultWindowImplementationHandler, JavaFxWindow](_.createWindow(window))
+      SignatureTest[DefaultWindowImplementationHandler, JavaFxWindow](_.createWindow(windowContract))
     }
     "maintain window representations" in new test {
-      val javaFxWindow1: JavaFxWindow = implHandler(window)
-      storedWindows must haveKey(window)
-      val javaFxWindow2: JavaFxWindow = implHandler(window)
+      val javaFxWindow1: JavaFxWindow = implHandler(windowContract)
+      storedWindows must haveKey(windowContract)
+      val javaFxWindow2: JavaFxWindow = implHandler(windowContract)
       javaFxWindow1 == javaFxWindow2
     }
     "use the factory" in new test {
-      val javaFxWindow = new JavaFxWindow(window)
+      val javaFxWindow = new JavaFxWindow(windowContract)
       val handler =
         new DefaultWindowImplementationHandler {
-          override val createWindow = (window: Window) => javaFxWindow
+          override val createWindow = (windowContract: WindowContract) => javaFxWindow
         }
-      handler(window) must be(javaFxWindow)
+      handler(windowContract) must be(javaFxWindow)
     }
     "maintain window representations when show and hide are called" in new test {
-      storedWindows must not haveKey (window)
-      implHandler show window
-      storedWindows must haveKey(window)
-      implHandler hide window
-      storedWindows must not haveKey (window)
+      storedWindows must not haveKey (windowContract)
+      implHandler show windowContract
+      storedWindows must haveKey(windowContract)
+      implHandler hide windowContract
+      storedWindows must not haveKey (windowContract)
     }
     "call show on the JavaFxWindow instance" in new test {
 
       var showCalled = false
       val handler =
         new DefaultWindowImplementationHandler {
-          override val createWindow = (window: Window) =>
-            new JavaFxWindow(window) {
+          override val createWindow = (windowContract: WindowContract) =>
+            new JavaFxWindow(windowContract) {
               override def show() = showCalled = true
             }
         }
 
-      handler show window
+      handler show windowContract
 
       showCalled
     }
@@ -72,13 +70,13 @@ object DefaultWindowImplementationHandlerTest extends Specification with Mockito
       var hideCalled = false
       val handler =
         new DefaultWindowImplementationHandler {
-          override val createWindow = (window: Window) =>
-            new JavaFxWindow(window) {
+          override val createWindow = (windowContract: WindowContract) =>
+            new JavaFxWindow(windowContract) {
               override def hide() = hideCalled = true
             }
         }
 
-      handler hide window
+      handler hide windowContract
 
       hideCalled
     }

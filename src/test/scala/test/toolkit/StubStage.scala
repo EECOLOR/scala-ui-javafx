@@ -1,8 +1,12 @@
 package test.toolkit
 
 import com.sun.javafx.tk.TKStage
+import scala.collection.mutable.ListBuffer
+import com.sun.javafx.tk.TKStageListener
 
 class StubStage extends TKStage {
+
+  var stageListener:TKStageListener = _
   
   def setVisible(value: Boolean): Unit = {}
   def setTitle(title: String): Unit = {}
@@ -10,6 +14,7 @@ class StubStage extends TKStage {
       x: Float, y: Float, xSet: Boolean, ySet: Boolean, 
       width: Float, height: Float, contentWidth: Float, contentHeight: Float, 
       xGravity: Float, yGravity: Float): Unit = {}
+  def setTKStageListener(listener: TKStageListener): Unit = stageListener = listener
   
   def close(): Unit = ???
   def createTKScene(x$1: Boolean): com.sun.javafx.tk.TKScene = ???
@@ -26,7 +31,6 @@ class StubStage extends TKStage {
   def setOpacity(x$1: Float): Unit = ???
   def setResizable(x$1: Boolean): Unit = ???
   def setScene(x$1: com.sun.javafx.tk.TKScene): Unit = ???
-  def setTKStageListener(x$1: com.sun.javafx.tk.TKStageListener): Unit = ???
   def toBack(): Unit = ???
   def toFront(): Unit = ???
   def ungrabFocus(): Unit = ???
