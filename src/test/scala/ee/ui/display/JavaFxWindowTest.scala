@@ -20,7 +20,8 @@ class JavaFxWindowTest extends Specification with StubToolkit with Mockito {
   isolated
   xonly
 
-  def javaFxWindow(window: Window): JavaFxWindow = new JavaFxWindow(contract = WindowContract(window))(contractHandlers = new DefaultContractHandlers)
+  val contractHandlers = new DefaultContractHandlers
+  def javaFxWindow(window: Window): JavaFxWindow = JavaFxWindow(contract = WindowContract(window))(contractHandlers = contractHandlers)
   val javaFxWindow: JavaFxWindow = javaFxWindow(new Window)
 
   "JavaFxWindow" should {
@@ -28,7 +29,7 @@ class JavaFxWindowTest extends Specification with StubToolkit with Mockito {
       SignatureTest[JavaFxWindow, TKStage](_.internalWindow)
     }
     "call the toolkit to create a TK representation" resetToolkitMock {
-      javaFxWindow.internalWindow
+      javaFxWindow.internalWindow must beAnInstanceOf[TKStage]
       there was one(stubToolkitMock).createTKStage(StageStyle.DECORATED, true, Modality.NONE, null)
     }
     "have a show method which should" in {
@@ -105,6 +106,16 @@ class JavaFxWindowTest extends Specification with StubToolkit with Mockito {
       there was one(fxWindow.internalWindow).setBounds(0f, 0f, false, false, w2, h1, -1f, -1f, 0f, 0f)
       window.width = w3
       there was one(fxWindow.internalWindow).setBounds(0f, 0f, false, false, w3, h1, -1f, -1f, 0f, 0f)
+    }
+    
+    "call internalWindow.setScene" in {
+      val window = new Window {
+        scene = new Scene
+      }
+      val fxWindow = javaFxWindow(window)
+      fxWindow.show()
+      val fxScene = contractHandlers.scenes(fxWindow -> window.scene.get)
+      there was one(fxWindow.internalWindow).setScene(fxScene.internalScene)
     }
   }
 }

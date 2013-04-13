@@ -2,7 +2,7 @@ package ee.ui.implementation
 
 import scala.collection.mutable
 
-trait ContractHandler[ContractType, ImplementationType] {
+trait ContractHandler[ContractType, ImplementationType] extends (ContractType => ImplementationType) {
 
   val create: ContractType => ImplementationType
 

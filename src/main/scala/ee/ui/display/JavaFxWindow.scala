@@ -1,17 +1,18 @@
 package ee.ui.display
 
-import com.sun.javafx.tk.TKStage
-import ee.ui.implementation.Toolkit
-import javafx.stage.StageStyle
-import javafx.stage.Modality
-import ee.ui.members.Property
-import com.sun.javafx.tk.TKStageListener
 import com.sun.javafx.tk.FocusCause
-import ee.ui.implementation.contracts.WindowContract
-import ee.ui.display.traits.Size
-import ee.ui.display.detail.NodeContract
+import com.sun.javafx.tk.TKStage
+import com.sun.javafx.tk.TKStageListener
+
 import ee.ui.display.detail.ReadOnlyNode
+import ee.ui.display.traits.Size
 import ee.ui.implementation.ContractHandlers
+import ee.ui.implementation.Toolkit
+import ee.ui.implementation.contracts.SceneContract
+import ee.ui.implementation.contracts.WindowContract
+import ee.ui.members.Property
+import javafx.stage.Modality
+import javafx.stage.StageStyle
 
 case class JavaFxWindow(contract: WindowContract)(implicit contractHandlers:ContractHandlers) extends Toolkit {
 
@@ -56,8 +57,15 @@ case class JavaFxWindow(contract: WindowContract)(implicit contractHandlers:Cont
 
     internalWindow
   }
+  
+  def setScene(scene:SceneContract) = {
+    val internalScene = contractHandlers.scenes(this -> scene).internalScene
+    internalWindow setScene internalScene
+  }
 
   def show(): Unit = {
+    window.scene foreach setScene
+    
     internalWindow setVisible true
   }
 

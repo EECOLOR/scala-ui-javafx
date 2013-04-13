@@ -3,6 +3,7 @@ package ee.ui.implementation
 import org.specs2.mutable.Specification
 import utils.SignatureTest
 import org.specs2.specification.Scope
+import utils.SubtypeTest
 
 object ContractHandlerTest extends Specification {
 
@@ -23,6 +24,9 @@ object ContractHandlerTest extends Specification {
   }
 
   "ContractHandler" should {
+    "extend ContractType => ImplementationType" in new test {
+      SubtypeTest[ContractHandler[TestContract, TestImplementation] <:< (TestContract => TestImplementation)]
+    }
     "maintain contract representations" in new test {
       val impl1: TestImplementation = contractHandler(contract)
       storedContracts must haveKey(contract)

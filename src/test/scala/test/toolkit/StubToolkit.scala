@@ -6,6 +6,7 @@ import javafx.stage.StageStyle
 import javafx.stage.Modality
 import com.sun.javafx.tk.TKStage
 import org.specs2.mock.Mockito
+import com.sun.javafx.sg.PGRectangle
 
 object StubToolkit extends StubToolkit {
   def setFxUserThread(t: Thread) = Toolkit.setFxUserThread(t)
@@ -56,6 +57,12 @@ class StubToolkit extends Toolkit with Mockito {
     
     spy(new StubStage)
   }
+
+  def createPGRectangle(): PGRectangle = {
+    shadowMock.createPGRectangle()
+    spy(new StubRectangle) 
+  }
+  
   
   def waitFor(x$1: com.sun.javafx.tk.Toolkit.Task): Unit = ???
 
@@ -95,7 +102,6 @@ class StubToolkit extends Toolkit with Mockito {
   def createPGPolygon(): com.sun.javafx.sg.PGPolygon = ???
   def createPGPolyline(): com.sun.javafx.sg.PGPolyline = ???
   def createPGQuadCurve(): com.sun.javafx.sg.PGQuadCurve = ???
-  def createPGRectangle(): com.sun.javafx.sg.PGRectangle = ???
   def createPGRegion(): com.sun.javafx.sg.PGRegion = ???
   def createPGSVGPath(): com.sun.javafx.sg.PGSVGPath = ???
   def createPGText(): com.sun.javafx.sg.PGText = ???
