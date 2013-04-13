@@ -15,7 +15,7 @@ import ee.ui.members.ReadOnlySignal
 import org.specs2.mock.Mockito
 import ee.ui.members.Signal
 import utils.SignatureTest
-import ee.ui.implementation.DefaultWindowImplementationHandler
+import ee.ui.implementation.JavaFxWindowImplementationHandler
 import com.sun.javafx.tk.TKStage
 import ee.ui.implementation.Toolkit
 import scala.collection.JavaConverters._
@@ -32,7 +32,7 @@ class JavaFxApplicationLauncherTest extends Specification with NoTimeConversions
     "have an engine with the correct windowImplementationHandler" in {
       val j = new JavaFxApplicationLauncher { def createApplication() = ??? }
       val e = new j.Engine {}
-      e.windowImplementationHandler must beAnInstanceOf[DefaultWindowImplementationHandler]
+      e.windowImplementationHandler must beAnInstanceOf[JavaFxWindowImplementationHandler]
     }
     "call platformImplementation.startup" in {
       val startupCalled = WaitingBoolean(false)

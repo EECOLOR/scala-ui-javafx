@@ -9,8 +9,11 @@ import com.sun.javafx.tk.TKStageListener
 import com.sun.javafx.tk.FocusCause
 import ee.ui.implementation.contracts.WindowContract
 import ee.ui.display.traits.Size
+import ee.ui.display.detail.NodeContract
+import ee.ui.display.detail.ReadOnlyNode
+import ee.ui.implementation.ContractHandlers
 
-case class JavaFxWindow(contract: WindowContract) extends Toolkit {
+case class JavaFxWindow(contract: WindowContract)(implicit contractHandlers:ContractHandlers) extends Toolkit {
 
   val window = contract.window
 
@@ -41,13 +44,13 @@ case class JavaFxWindow(contract: WindowContract) extends Toolkit {
 
     window.title foreach internalWindow.setTitle
 
-    val binding = 
+    val boundsBinding =
       (window.width | window.height) <==> (internalWindowState.width | internalWindowState.height)
-    
-    binding.right bindWith {
-        case (width, height) => 
-          internalWindow.setBounds(0f, 0f, false, false, width.toFloat, height.toFloat, -1, -1, 0, 0)
-      }
+
+    boundsBinding.right bindWith {
+      case (width, height) =>
+        internalWindow.setBounds(0f, 0f, false, false, width.toFloat, height.toFloat, -1, -1, 0, 0)
+    }
 
     internalWindow setTKStageListener internalWindowListener
 

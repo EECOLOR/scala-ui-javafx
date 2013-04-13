@@ -12,9 +12,7 @@ object ContractHandlerTest extends Specification {
     class TestContract
     class TestImplementation
 
-    class TestContractHandler extends ContractHandler {
-      type ContractType = TestContract
-      type ImplementationType = TestImplementation
+    class TestContractHandler extends ContractHandler[TestContract, TestImplementation] {
       
       val create = (contract:TestContract) => new TestImplementation
     }
@@ -25,11 +23,6 @@ object ContractHandlerTest extends Specification {
   }
 
   "ContractHandler" should {
-    "have a ContractType and ImplementationType" in {
-      def x: ContractHandler#ContractType = ???
-      def y: ContractHandler#ImplementationType = ???
-      ok
-    }
     "maintain contract representations" in new test {
       val impl1: TestImplementation = contractHandler(contract)
       storedContracts must haveKey(contract)

@@ -13,13 +13,14 @@ import scala.util.Random
 import com.sun.javafx.tk.TKStageListener
 import ee.ui.implementation.contracts.WindowContract
 import org.mockito.{ Mockito => MockitoLibrary }
+import ee.ui.implementation.DefaultContractHandlers
 
 class JavaFxWindowTest extends Specification with StubToolkit with Mockito {
   sequential
   isolated
   xonly
 
-  def javaFxWindow(window: Window): JavaFxWindow = new JavaFxWindow(contract = WindowContract(window))
+  def javaFxWindow(window: Window): JavaFxWindow = new JavaFxWindow(contract = WindowContract(window))(contractHandlers = new DefaultContractHandlers)
   val javaFxWindow: JavaFxWindow = javaFxWindow(new Window)
 
   "JavaFxWindow" should {
