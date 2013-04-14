@@ -25,6 +25,7 @@ class JavaFxSceneTest extends Specification with Mockito {
     "call internalWindow.createTkScene" in {
       javaFxScene.internalScene must beAnInstanceOf[TKScene]
       there was one(owner.internalWindow).createTKScene(false)
+      todo
     }
     "call internalScene.setRoot correctly" in {
       val rectangle = new Rectangle
@@ -35,6 +36,9 @@ class JavaFxSceneTest extends Specification with Mockito {
       val fxRectangle = contractHandlers.nodes(rectangle)
       there was no(fxScene1.internalScene).setRoot(any)
       there was one(fxScene2.internalScene).setRoot(fxRectangle.internalNode)
+    }
+    "handle root changes correctly" in {
+      todo
     }
   }
 }

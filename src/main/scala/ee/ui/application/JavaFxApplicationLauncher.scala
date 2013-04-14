@@ -20,6 +20,6 @@ abstract class JavaFxApplicationLauncher extends ApplicationLauncher with JavaFx
     
     val exitHandler = JavaFxApplicationLauncher.this
     
-    val settings = new ApplicationSettings(application)
+    val settings = new ApplicationSettings
   }
 }

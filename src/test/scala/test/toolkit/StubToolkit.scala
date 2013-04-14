@@ -63,7 +63,6 @@ class StubToolkit extends Toolkit with Mockito {
     spy(new StubRectangle) 
   }
   
-  
   def waitFor(x$1: com.sun.javafx.tk.Toolkit.Task): Unit = ???
 
   def enterNestedEventLoop(x$1: Any): Object = ???

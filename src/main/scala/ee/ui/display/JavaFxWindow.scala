@@ -14,7 +14,7 @@ import ee.ui.members.Property
 import javafx.stage.Modality
 import javafx.stage.StageStyle
 
-case class JavaFxWindow(contract: WindowContract)(implicit contractHandlers:ContractHandlers) extends Toolkit {
+case class JavaFxWindow(contract: WindowContract)(implicit contractHandlers: ContractHandlers) extends Toolkit {
 
   val window = contract.window
 
@@ -40,9 +40,10 @@ case class JavaFxWindow(contract: WindowContract)(implicit contractHandlers:Cont
     def focusUngrab(): Unit = ???
   }
 
-  lazy val internalWindow: TKStage = {
-    val internalWindow = toolkit.createTKStage(StageStyle.DECORATED, true, Modality.NONE, null)
+  val internalWindow: TKStage = toolkit.createTKStage(StageStyle.DECORATED, true, Modality.NONE, null)
 
+  val bindToWindow = {
+    
     window.title foreach internalWindow.setTitle
 
     val boundsBinding =
@@ -55,17 +56,24 @@ case class JavaFxWindow(contract: WindowContract)(implicit contractHandlers:Cont
 
     internalWindow setTKStageListener internalWindowListener
 
-    internalWindow
-  }
-  
-  def setScene(scene:SceneContract) = {
-    val internalScene = contractHandlers.scenes(this -> scene).internalScene
-    internalWindow setScene internalScene
+    def internalScene(scene: SceneContract) =
+      contractHandlers.scenes(this -> scene).internalScene
+
+    def setScene(scene: SceneContract) = internalWindow setScene internalScene(scene)
+
+    window.scene foreach setScene
+
+    window.scene.valueChange {
+      case (Some(oldScene), Some(newScene)) => setScene(newScene)
+      case (None, Some(newScene)) => setScene(newScene)
+      case (Some(newScene), None) => internalWindow setScene null
+      case (None, None) => // should not happen
+    }
+    
+    true
   }
 
   def show(): Unit = {
-    window.scene foreach setScene
-    
     internalWindow setVisible true
   }
 
