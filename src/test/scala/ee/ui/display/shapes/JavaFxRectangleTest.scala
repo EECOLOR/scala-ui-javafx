@@ -10,31 +10,43 @@ import ee.ui.display.traits.Size
 import ee.ui.display.JavaFxShape
 
 class JavaFxRectangleTest extends Specification with StubToolkit with Mockito {
-  
+
   xonly
   sequential
   isolated
-  
+
+  val rectangle = new Rectangle with Size
+  val javaFxRectangle = new JavaFxRectangle(rectangle)
+
   "JavaFxRectangle" should {
-    
+
     "extend JavaFxShape" in {
       SubtypeTest[JavaFxRectangle <:< JavaFxShape]
     }
-    
+
     "call toolkit.createPGRectangle " resetToolkitMock {
       val javaFxRectangle = new JavaFxRectangle(new Rectangle)
       javaFxRectangle.internalNode must beAnInstanceOf[PGRectangle]
       there was one(stubToolkitMock).createPGRectangle()
     }
-    
+
     "call internalRectangle.updateRectangle" in {
-      val rectangle = new Rectangle with Size
-      val javaFxRectangle = new JavaFxRectangle(rectangle)
       there was one(javaFxRectangle.internalNode).updateRectangle(0, 0, 0, 0, 0, 0)
       rectangle.width = 100
       there was one(javaFxRectangle.internalNode).updateRectangle(0, 0, 100, 0, 0, 0)
       rectangle.height = 200
       there was one(javaFxRectangle.internalNode).updateRectangle(0, 0, 100, 200, 0, 0)
+    }
+    
+    "fire dirty when any of it's properties change" in {
+      var dirtyFired = 0
+      javaFxRectangle.dirty {
+        dirtyFired += 1
+      }
+      rectangle.width = 100
+      rectangle.height = 100
+      
+      dirtyFired === 2
     }
   }
 }
