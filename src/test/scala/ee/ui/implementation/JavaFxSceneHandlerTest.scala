@@ -12,6 +12,7 @@ class JavaFxSceneHandlerTest extends Specification {
   xonly
   
   "JavaFxSceneHandler" should {
+    
     "extend the correct type" in {
       SubtypeTest[JavaFxSceneHandler <:< ContractHandler[(JavaFxWindow, SceneContract), JavaFxScene]]
     }

@@ -8,6 +8,7 @@ import com.sun.javafx.sg.PGNode
 import ee.ui.display.implementation.contracts.NodeContract
 import ee.ui.display.shapes.Rectangle
 import com.sun.javafx.pgstub.StubNode
+import ee.ui.members.Signal
 
 object JavaFxNodeTest extends Specification {
 
@@ -29,6 +30,10 @@ object JavaFxNodeTest extends Specification {
       val node:NodeContract = new Rectangle
       new JavaFxNode(node = node, new StubNode) {}
       ok
+    }
+    
+    "have a dirty signal" in {
+      SignatureTest[JavaFxNode, Signal](_.dirty)
     }
   }
 }

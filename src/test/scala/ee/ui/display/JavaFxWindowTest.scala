@@ -27,13 +27,16 @@ class JavaFxWindowTest extends Specification with StubToolkit with Mockito {
   lazy val javaFxWindow: JavaFxWindow = javaFxWindow(new Window)
 
   "JavaFxWindow" should {
+    
     "have a TK representation" in {
       SignatureTest[JavaFxWindow, TKStage](_.internalWindow)
     }
+    
     "call the toolkit to create a TK representation" resetToolkitMock {
       javaFxWindow.internalWindow must beAnInstanceOf[TKStage]
       there was one(stubToolkitMock).createTKStage(StageStyle.DECORATED, true, Modality.NONE, null)
     }
+    
     "have a show method which should" in {
       "have the corect signature" in {
         SignatureTest[JavaFxWindow, Unit](_.show())
@@ -43,6 +46,7 @@ class JavaFxWindowTest extends Specification with StubToolkit with Mockito {
         there was one(javaFxWindow.internalWindow).setVisible(true)
       }
     }
+    
     "have a hide method which should" in {
       "have the correct signature" in {
         SignatureTest[JavaFxWindow, Unit](_.hide())
@@ -52,7 +56,8 @@ class JavaFxWindowTest extends Specification with StubToolkit with Mockito {
         there was one(javaFxWindow.internalWindow).setVisible(false)
       }
     }
-    "was a call to setTitle of the stage" in {
+    
+    "make a call to setTitle of the stage" in {
       val t = "test"
       val window = new Window {
         title = t
@@ -60,6 +65,7 @@ class JavaFxWindowTest extends Specification with StubToolkit with Mockito {
       val fxWindow = javaFxWindow(window)
       there was one(fxWindow.internalWindow).setTitle(t)
     }
+    
     "set the correct size" in {
       val w1 = Random.nextInt
       val w2 = Random.nextInt
@@ -75,6 +81,7 @@ class JavaFxWindowTest extends Specification with StubToolkit with Mockito {
       window.height = h2
       there was one(fxWindow.internalWindow).setBounds(0f, 0f, false, false, w2, h2, -1f, -1f, 0f, 0f)
     }
+    
     "add a listener to the internal window" in {
       there was one(javaFxWindow.internalWindow).setTKStageListener(any)
     }

@@ -7,11 +7,13 @@ import org.specs2.mock.Mockito
 import ee.ui.implementation.contracts.SceneContract
 import ee.ui.display.shapes.Rectangle
 import ee.ui.implementation.DefaultContractHandlers
+import test.toolkit.StubScene
 
 class JavaFxSceneTest extends Specification with Mockito {
 
   isolated
   xonly
+  sequential
 
   val contractHandlers = new DefaultContractHandlers
   val owner = new JavaFxWindowTest().javaFxWindow
@@ -29,9 +31,32 @@ class JavaFxSceneTest extends Specification with Mockito {
       there was one(owner.internalWindow).createTKScene(false)
     }
     
-    "call internalWindow.setCamera" in {
+    "call internalScebe.setCamera" in {
+      // the default camera will only be initialized if this method is called
       there was one(javaFxScene.internalScene).setCamera(null)
     }
+    
+    "call internalScene.setTKSceneListener" in {
+      there was one(javaFxScene.internalScene).setTKSceneListener(any)
+    }
+    
+    "reflect external size changes in the scene" in {
+      val scene = new Scene
+      val fxScene = javaFxScene(scene)
+      var listener = fxScene.internalScene.asInstanceOf[StubScene].sceneListener
+
+      listener.changedSize(1, 2)
+      scene.width.value === 1
+      scene.height.value === 2
+    }
+    
+    "should call internalScene.markDirty when roots dirty signal fires" in {
+      val rectangle = new Rectangle
+      val fxScene = javaFxScene(new Scene { root = rectangle })
+      val fxRectangle = contractHandlers.nodes(rectangle)
+      fxRectangle.dirty.fire()
+      there was one(fxScene.internalScene).markDirty()
+    } 
     
     "call internalScene.setRoot correctly" in {
       val rectangle = new Rectangle
@@ -43,6 +68,7 @@ class JavaFxSceneTest extends Specification with Mockito {
       there was no(fxScene1.internalScene).setRoot(any)
       there was one(fxScene2.internalScene).setRoot(fxRectangle.internalNode)
     }
+    
     "handle root changes correctly" in {
       todo
     }
