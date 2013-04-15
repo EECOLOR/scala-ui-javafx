@@ -12,21 +12,21 @@ import ee.ui.implementation.contracts.WindowContract
 import ee.ui.implementation.contracts.WindowContract
 import ee.ui.implementation.contracts.WindowContract
 
-object JavaFxWindowImplementationHandlerTest extends Specification with Mockito {
+object JavaFxWindowHandlerTest extends Specification with Mockito {
 
   xonly
   
   implicit val contractHandlers = new DefaultContractHandlers
   
   trait test extends Scope {
-    val implHandler = new JavaFxWindowImplementationHandler()(contractHandlers = contractHandlers)
+    val implHandler = new JavaFxWindowHandler()(contractHandlers = contractHandlers)
     def storedWindows = implHandler.contracts
     val windowContract = WindowContract(new Window)
   } 
 
   "JavaFxWindowImplementationHandler" should {
     "extend WindowImplementationHandler with ContractHandler" in {
-      SubtypeTest[JavaFxWindowImplementationHandler <:< WindowImplementationHandler with ContractHandler[WindowContract, JavaFxWindow]]
+      SubtypeTest[JavaFxWindowHandler <:< WindowImplementationHandler with ContractHandler[WindowContract, JavaFxWindow]]
     }
     "maintain window representations when show and hide are called" in new test {
       storedWindows must not haveKey (windowContract)
@@ -39,7 +39,7 @@ object JavaFxWindowImplementationHandlerTest extends Specification with Mockito 
 
       var showCalled = false
       val handler =
-        new JavaFxWindowImplementationHandler {
+        new JavaFxWindowHandler {
           override val create = (windowContract: WindowContract) =>
             new JavaFxWindow(windowContract) {
               override def show() = showCalled = true
@@ -54,7 +54,7 @@ object JavaFxWindowImplementationHandlerTest extends Specification with Mockito 
 
       var hideCalled = false
       val handler =
-        new JavaFxWindowImplementationHandler {
+        new JavaFxWindowHandler {
           override val create = (windowContract: WindowContract) =>
             new JavaFxWindow(windowContract) {
               override def hide() = hideCalled = true

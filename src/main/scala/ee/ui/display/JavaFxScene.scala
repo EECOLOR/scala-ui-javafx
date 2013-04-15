@@ -10,12 +10,13 @@ case class JavaFxScene(owner:JavaFxWindow, scene:SceneContract)(implicit contrac
   val getJavaFxNode = contractHandlers.nodes 
        
   
-  lazy val internalScene = {
-    val internalScene = owner.internalWindow createTKScene false
-    
+  val internalScene = owner.internalWindow createTKScene false
+  
+
+  val bindToScene:Unit = {
+   
+    internalScene setCamera null
     scene.root foreach ( getJavaFxNode andThen (_.internalNode) andThen internalScene.setRoot)
-    
-    internalScene
   }
   
 }

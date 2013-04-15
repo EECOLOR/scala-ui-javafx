@@ -7,6 +7,8 @@ import javafx.stage.Modality
 import com.sun.javafx.tk.TKStage
 import org.specs2.mock.Mockito
 import com.sun.javafx.sg.PGRectangle
+import javafx.scene.paint.Color
+import javafx.scene.paint.Paint
 
 object StubToolkit extends StubToolkit {
   def setFxUserThread(t: Thread) = Toolkit.setFxUserThread(t)
@@ -63,6 +65,10 @@ class StubToolkit extends Toolkit with Mockito {
     spy(new StubRectangle) 
   }
   
+  case class InternalPaint(paint:Paint)
+  
+  protected def createColorPaint(color: Color): Object = InternalPaint(color)
+  
   def waitFor(x$1: com.sun.javafx.tk.Toolkit.Task): Unit = ???
 
   def enterNestedEventLoop(x$1: Any): Object = ???
@@ -79,7 +85,6 @@ class StubToolkit extends Toolkit with Mockito {
   def convertMouseEventToFX(x$1: Any): javafx.scene.input.MouseEvent = ???
   def convertShapeToFXPath(x$1: Any): Array[javafx.scene.shape.PathElement] = ???
 
-  protected def createColorPaint(x$1: javafx.scene.paint.Color): Object = ???
   protected def createImagePatternPaint(x$1: javafx.scene.paint.ImagePattern): Object = ???
   protected def createLinearGradientPaint(x$1: javafx.scene.paint.LinearGradient): Object = ???
   protected def createRadialGradientPaint(x$1: javafx.scene.paint.RadialGradient): Object = ???

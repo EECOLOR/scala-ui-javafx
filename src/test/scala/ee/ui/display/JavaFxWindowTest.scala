@@ -14,6 +14,7 @@ import com.sun.javafx.tk.TKStageListener
 import ee.ui.implementation.contracts.WindowContract
 import org.mockito.{ Mockito => MockitoLibrary }
 import ee.ui.implementation.DefaultContractHandlers
+import ee.ui.implementation.SpyContractHandlers
 
 class JavaFxWindowTest extends Specification with StubToolkit with Mockito {
   
@@ -21,7 +22,7 @@ class JavaFxWindowTest extends Specification with StubToolkit with Mockito {
   isolated
   xonly
 
-  val contractHandlers = new DefaultContractHandlers
+  val contractHandlers = new SpyContractHandlers
   def javaFxWindow(window: Window): JavaFxWindow = JavaFxWindow(contract = WindowContract(window))(contractHandlers = contractHandlers)
   lazy val javaFxWindow: JavaFxWindow = javaFxWindow(new Window)
 
@@ -112,11 +113,9 @@ class JavaFxWindowTest extends Specification with StubToolkit with Mockito {
     "call internalWindow.setScene" in {
       val window1 = new Window { scene = new Scene }
       val fxWindow1 = javaFxWindow(window1)
-      fxWindow1.show()
       val fxScene1 = contractHandlers.scenes(fxWindow1 -> window1.scene.get)
       val window2 = new Window { scene = None }
       val fxWindow2 = javaFxWindow(window2)
-      fxWindow2.show()
       there was one(fxWindow1.internalWindow).setScene(fxScene1.internalScene)
       there was no(fxWindow2.internalWindow).setScene(any)
     }
@@ -127,19 +126,19 @@ class JavaFxWindowTest extends Specification with StubToolkit with Mockito {
       there was no(internalWindow).setScene(any)
       
       val scene1 = new Scene
-      window.scene = scene1 
+      window.scene = scene1
       val fxScene1 = contractHandlers.scenes(fxWindow -> scene1).internalScene
       there was one(internalWindow).setScene(fxScene1)
       
       val scene2 = new Scene
       window.scene = scene2 
+      there was one(contractHandlers.scenes).removeContract(fxWindow -> scene1)
       val fxScene2 = contractHandlers.scenes(fxWindow -> scene2).internalScene
       there was one(internalWindow).setScene(fxScene2)
       
       window.scene = None 
+      there was one(contractHandlers.scenes).removeContract(fxWindow -> scene2)
       there was one(internalWindow).setScene(null)
-      
-      ko("Add checks for removal of scenes in contract handlers")
     }
 
   }

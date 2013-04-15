@@ -24,15 +24,18 @@ object ContractHandlerTest extends Specification {
   }
 
   "ContractHandler" should {
+    
     "extend ContractType => ImplementationType" in new test {
       SubtypeTest[ContractHandler[TestContract, TestImplementation] <:< (TestContract => TestImplementation)]
     }
+    
     "maintain contract representations" in new test {
       val impl1: TestImplementation = contractHandler(contract)
       storedContracts must haveKey(contract)
       val impl2: TestImplementation = contractHandler(contract)
       impl1 == impl2
     }
+    
     "use the factory" in new test {
       val impl = new TestImplementation
       val handler =
@@ -40,6 +43,13 @@ object ContractHandlerTest extends Specification {
           override val create = (contract: TestContract) => impl
         }
       handler(contract) must be(impl)
+    }
+    
+    "have a removeContract method" in new test {
+      contractHandler(contract)
+      storedContracts must haveKey(contract)
+      contractHandler.removeContract(contract)
+      storedContracts must not haveKey(contract)
     }
   }
 

@@ -11,4 +11,6 @@ trait ContractHandler[ContractType, ImplementationType] extends (ContractType =>
   def apply(contract: ContractType): ImplementationType = 
     contracts.getOrElseUpdate(contract, contracts(contract))
 
+  def removeContract(contract:ContractType) = 
+    contracts -= contract
 }

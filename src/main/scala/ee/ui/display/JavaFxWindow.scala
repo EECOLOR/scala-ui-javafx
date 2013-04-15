@@ -3,7 +3,6 @@ package ee.ui.display
 import com.sun.javafx.tk.FocusCause
 import com.sun.javafx.tk.TKStage
 import com.sun.javafx.tk.TKStageListener
-
 import ee.ui.display.detail.ReadOnlyNode
 import ee.ui.display.traits.Size
 import ee.ui.implementation.ContractHandlers
@@ -13,6 +12,7 @@ import ee.ui.implementation.contracts.WindowContract
 import ee.ui.members.Property
 import javafx.stage.Modality
 import javafx.stage.StageStyle
+import scala.reflect.ClassTag
 
 case class JavaFxWindow(contract: WindowContract)(implicit contractHandlers: ContractHandlers) extends Toolkit {
 
@@ -26,10 +26,10 @@ case class JavaFxWindow(contract: WindowContract)(implicit contractHandlers: Con
 
   object internalWindowListener extends TKStageListener {
 
-    def changedFocused(focussed: Boolean, cause: FocusCause): Unit = ???
+    def changedFocused(focussed: Boolean, cause: FocusCause): Unit = println("JavaFxWindow - Implement changedFocused")
     def changedFullscreen(fullscreen: Boolean): Unit = ???
     def changedIconified(iconified: Boolean): Unit = ???
-    def changedLocation(x: Float, y: Float): Unit = ???
+    def changedLocation(x: Float, y: Float): Unit = println("JavaFxWindow - Implement changedLocation")
     def changedResizable(resizable: Boolean): Unit = ???
     def changedSize(width: Float, height: Float): Unit = {
       internalWindowState.width = width
@@ -42,7 +42,7 @@ case class JavaFxWindow(contract: WindowContract)(implicit contractHandlers: Con
 
   val internalWindow: TKStage = toolkit.createTKStage(StageStyle.DECORATED, true, Modality.NONE, null)
 
-  val bindToWindow = {
+  val bindToWindow:Unit = {
     
     window.title foreach internalWindow.setTitle
 
@@ -60,17 +60,22 @@ case class JavaFxWindow(contract: WindowContract)(implicit contractHandlers: Con
       contractHandlers.scenes(this -> scene).internalScene
 
     def setScene(scene: SceneContract) = internalWindow setScene internalScene(scene)
-
+    def removeScene(scene:SceneContract) = contractHandlers.scenes.removeContract(this -> scene)
+    
     window.scene foreach setScene
 
     window.scene.valueChange {
-      case (Some(oldScene), Some(newScene)) => setScene(newScene)
+      case (Some(oldScene), Some(newScene)) => {
+        removeScene(oldScene)
+        setScene(newScene)
+      }
       case (None, Some(newScene)) => setScene(newScene)
-      case (Some(newScene), None) => internalWindow setScene null
+      case (Some(oldScene), None) => {
+        removeScene(oldScene)
+        internalWindow setScene null
+      }
       case (None, None) => // should not happen
     }
-    
-    true
   }
 
   def show(): Unit = {

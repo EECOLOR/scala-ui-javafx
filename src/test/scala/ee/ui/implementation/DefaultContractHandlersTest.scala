@@ -13,7 +13,7 @@ object DefaultContractHandlersTest extends Specification {
       SubtypeTest[DefaultContractHandlers <:< ContractHandlers]
     }
     "use the correct ContractHandlers" in {
-      SignatureTest[DefaultContractHandlers, JavaFxWindowImplementationHandler](_.windows)
+      SignatureTest[DefaultContractHandlers, JavaFxWindowHandler](_.windows)
       SignatureTest[DefaultContractHandlers, JavaFxSceneHandler](_.scenes)
       SignatureTest[DefaultContractHandlers, JavaFxNodeHandler](_.nodes)
     }

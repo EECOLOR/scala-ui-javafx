@@ -19,14 +19,20 @@ class JavaFxSceneTest extends Specification with Mockito {
   def javaFxScene(scene: SceneContract) = JavaFxScene(owner, scene)(contractHandlers = contractHandlers)
 
   "JavaFxScene" should {
+    
     "have a TK representation" in {
       SignatureTest[JavaFxScene, TKScene](_.internalScene)
     }
+    
     "call internalWindow.createTkScene" in {
       javaFxScene.internalScene must beAnInstanceOf[TKScene]
       there was one(owner.internalWindow).createTKScene(false)
-      todo
     }
+    
+    "call internalWindow.setCamera" in {
+      there was one(javaFxScene.internalScene).setCamera(null)
+    }
+    
     "call internalScene.setRoot correctly" in {
       val rectangle = new Rectangle
       val scene1 = new Scene { root = None }
