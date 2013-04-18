@@ -12,11 +12,6 @@ case class JavaFxRectangle(rectangle: RectangleContract, override val internalNo
   val bindToRectangle: Unit = {
     (rectangle.width | rectangle.height) bindWith {
       case (width, height) =>
-        /*
-        internalNode setTransformedBounds BaseBounds.getInstance(
-          0, 0, 0,
-          width.toFloat, height.toFloat, 0)
-          */
         internalNode.updateRectangle(0, 0, width.toFloat, height.toFloat, 0, 0)
         dirty.fire()
     }
