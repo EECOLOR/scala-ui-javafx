@@ -37,9 +37,15 @@ case class JavaFxScene(owner: JavaFxWindow, scene: SceneContract)(implicit contr
 
   }
 
+  object internalPaintListener extends TKScenePaintListener {
+    def frameRendered():Unit = scene.root foreach { node => 
+      contractHandlers.nodes(node).dirty = false
+    }
+  }
+  
   def setRoot(node:NodeContract):Unit = {
     val javaFxNode = contractHandlers.nodes(node)
-    javaFxNode.dirty {
+    javaFxNode.dirty.change filter (_ == true) apply {
       internalScene.markDirty()
     }
     internalScene setRoot javaFxNode.internalNode
@@ -48,6 +54,7 @@ case class JavaFxScene(owner: JavaFxWindow, scene: SceneContract)(implicit contr
   val bindToScene: Unit = {
 
     internalScene setTKSceneListener internalSceneListener
+    internalScene setTKScenePaintListener internalPaintListener
     internalScene setCamera null
 
     scene.root foreach setRoot

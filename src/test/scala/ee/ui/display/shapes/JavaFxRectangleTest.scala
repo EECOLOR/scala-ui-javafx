@@ -37,16 +37,5 @@ class JavaFxRectangleTest extends Specification with StubToolkit with Mockito {
       rectangle.height = 200
       there was one(javaFxRectangle.internalNode).updateRectangle(0, 0, 100, 200, 0, 0)
     }
-    
-    "fire dirty when any of it's properties change" in {
-      var dirtyFired = 0
-      javaFxRectangle.dirty {
-        dirtyFired += 1
-      }
-      rectangle.width = 100
-      rectangle.height = 100
-      
-      dirtyFired === 2
-    }
   }
 }

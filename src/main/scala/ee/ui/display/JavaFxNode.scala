@@ -6,30 +6,39 @@ import ee.ui.members.Signal
 import com.sun.javafx.geom.transform.Affine3D
 import ee.ui.implementation.Converter
 import ee.ui.primitives.Transformation
+import com.sun.javafx.geom.BaseBounds
+import ee.ui.members.Property
+import ee.ui.members.ReadOnlyProperty
 
 abstract class JavaFxNode(node: NodeContract, val internalNode: PGNode) {
-  val dirty = Signal()
+  private val _dirty = Property(false)
+  def dirty: ReadOnlyProperty[Boolean] = _dirty
+  def dirty_=(value:Boolean) = _dirty.value = value
 
   val bindToNode: Unit = {
-    
+
     node.totalTransformation bindWith { totalTransformation =>
-      
-        val t = totalTransformation
 
-        val matrix = new Affine3D
-        matrix concatenate (
-          t.xx, t.xy, t.xz, t.xt,
-          t.yx, t.yy, t.yz, t.yt,
-          t.zx, t.zy, t.zz, t.zt)
+      val t = totalTransformation
 
-        internalNode setTransformMatrix matrix
+      val matrix = new Affine3D
+      matrix concatenate (
+        t.xx, t.xy, t.xz, t.xt,
+        t.yx, t.yy, t.yz, t.yt,
+        t.zx, t.zy, t.zz, t.zt)
+
+      internalNode setTransformMatrix matrix
+    }
+
+    node.bounds bindWith { bounds =>
+
+      val fxBounds = Converter convert bounds
+
+      internalNode setTransformedBounds fxBounds
     }
     
-    node.bounds bindWith { bounds => 
-        
-        val fxBounds = Converter convert bounds
-        
-        internalNode setTransformedBounds fxBounds
+    (node.bounds.change | node.totalTransformation.change) {
+      dirty = true
     }
   }
 }
