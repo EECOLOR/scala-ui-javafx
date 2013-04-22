@@ -61,15 +61,17 @@ class JavaFxNodeTest extends Specification with Mockito {
       SignatureTest[JavaFxNode, PGNode](_.internalNode)
     }
 
-    "have a dirty property" in {
+    "have a dirty property with a default value of true" in {
       SignatureTest[JavaFxNode, ReadOnlyProperty[Boolean]](_.dirty)
-      javaFxNode.dirty = true
       javaFxNode.dirty.value === true
+      javaFxNode.dirty = false
+      javaFxNode.dirty.value === false
     }
 
     "should fire dirty when the related properties change" in {
       var changesFired = 0
 
+      javaFxNode.dirty = false
       javaFxNode.dirty.change { dirty =>
         if (dirty) {
           changesFired += 1

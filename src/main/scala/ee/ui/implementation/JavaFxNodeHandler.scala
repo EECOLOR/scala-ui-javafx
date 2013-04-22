@@ -7,9 +7,12 @@ import ee.ui.display.shapes.JavaFxRectangle
 import ee.ui.display.shapes.detail.ReadOnlyRectangle
 import ee.ui.display.implementation.contracts.NodeContract
 import ee.ui.display.implementation.contracts.RectangleContract
+import ee.ui.display.shapes.JavaFxText
+import ee.ui.display.implementation.contracts.TextContract
 
 class JavaFxNodeHandler extends ContractHandler[NodeContract, JavaFxNode] {
-  val create:NodeContract => JavaFxNode = {  
+  val create:NodeContract => JavaFxNode = { 
     case rectangle:RectangleContract => new JavaFxRectangle(rectangle)
+    case text:TextContract => new JavaFxText(text)
   }
 }

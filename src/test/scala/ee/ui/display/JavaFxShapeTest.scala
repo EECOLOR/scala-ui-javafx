@@ -46,6 +46,7 @@ class JavaFxShapeTest extends Specification with StubToolkit with Mockito {
     "should fire dirty when the related properties change" in {
       var changesFired = 0
 
+      javaFxSchape.dirty = false
       javaFxSchape.dirty.change { dirty =>
         if (dirty) {
           changesFired += 1

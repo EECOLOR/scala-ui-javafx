@@ -24,6 +24,7 @@ class JavaFxSceneTest extends Specification with Mockito {
     override val nodes = new JavaFxNodeHandler {
       override val create: NodeContract => JavaFxNode = {
         case rectangle: RectangleContract => spy(new JavaFxRectangle(rectangle))
+        case _ => throw new UnsupportedOperationException("unsupported")
       }
     }
   }
@@ -83,11 +84,10 @@ class JavaFxSceneTest extends Specification with Mockito {
       val rectangle = new Rectangle
       val fxScene = javaFxScene(new Scene { root = rectangle })
       val fxRectangle = contractHandlers.nodes(rectangle)
-      fxRectangle.dirty = true
-      there was one(fxScene.internalScene).markDirty()
-      MockitoLibrary reset fxScene.internalScene
       fxRectangle.dirty = false
       there was no(fxScene.internalScene).markDirty()
+      fxRectangle.dirty = true
+      there was one(fxScene.internalScene).markDirty()
     }
 
     "call internalScene.setRoot correctly" in {

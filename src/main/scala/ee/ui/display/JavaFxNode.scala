@@ -9,11 +9,17 @@ import ee.ui.primitives.Transformation
 import com.sun.javafx.geom.BaseBounds
 import ee.ui.members.Property
 import ee.ui.members.ReadOnlyProperty
+import ee.ui.primitives.Bounds
 
 abstract class JavaFxNode(node: NodeContract, val internalNode: PGNode) {
-  private val _dirty = Property(false)
+  private val _dirty = Property(true)
   def dirty: ReadOnlyProperty[Boolean] = _dirty
-  def dirty_=(value:Boolean) = _dirty.value = value
+  def dirty_=(value: Boolean) = _dirty.value = value
+
+  def boundsTransformed(bounds: Bounds) = {
+    val fxBounds = Converter convert bounds
+    internalNode setTransformedBounds fxBounds
+  }
 
   val bindToNode: Unit = {
 
@@ -30,13 +36,8 @@ abstract class JavaFxNode(node: NodeContract, val internalNode: PGNode) {
       internalNode setTransformMatrix matrix
     }
 
-    node.bounds bindWith { bounds =>
+    node.bounds bindWith boundsTransformed
 
-      val fxBounds = Converter convert bounds
-
-      internalNode setTransformedBounds fxBounds
-    }
-    
     (node.bounds.change | node.totalTransformation.change) {
       dirty = true
     }

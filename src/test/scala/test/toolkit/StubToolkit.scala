@@ -9,6 +9,8 @@ import org.specs2.mock.Mockito
 import com.sun.javafx.sg.PGRectangle
 import javafx.scene.paint.Color
 import javafx.scene.paint.Paint
+import com.sun.javafx.sg.PGText
+import com.sun.javafx.tk.FontLoader
 
 object StubToolkit extends StubToolkit {
   def setFxUserThread(t: Thread) = Toolkit.setFxUserThread(t)
@@ -65,9 +67,17 @@ class StubToolkit extends Toolkit with Mockito {
     spy(new StubRectangle) 
   }
   
+  def createPGText(): PGText = {
+      shadowMock.createPGText()
+      spy(new StubText) 
+  }
+  
   case class InternalPaint(paint:Paint)
   
   protected def createColorPaint(color: Color): Object = InternalPaint(color)
+  
+  def getFontLoader(): FontLoader = spy(new StubFontLoader)
+  
   
   def waitFor(x$1: com.sun.javafx.tk.Toolkit.Task): Unit = ???
 
@@ -108,7 +118,6 @@ class StubToolkit extends Toolkit with Mockito {
   def createPGQuadCurve(): com.sun.javafx.sg.PGQuadCurve = ???
   def createPGRegion(): com.sun.javafx.sg.PGRegion = ???
   def createPGSVGPath(): com.sun.javafx.sg.PGSVGPath = ???
-  def createPGText(): com.sun.javafx.sg.PGText = ???
 
   def createParallelCamera(): com.sun.javafx.geom.ParallelCameraImpl = ???
   def createPerspectiveCamera(): com.sun.javafx.geom.PerspectiveCameraImpl = ???
@@ -140,7 +149,6 @@ class StubToolkit extends Toolkit with Mockito {
   def getContextMap(): java.util.Map[Object, Object] = ???
   def getFilterContext(x$1: Any): com.sun.scenario.effect.FilterContext = ???
 
-  def getFontLoader(): com.sun.javafx.tk.FontLoader = ???
 
   def getKeyCodeForChar(x$1: String): Int = ???
 
