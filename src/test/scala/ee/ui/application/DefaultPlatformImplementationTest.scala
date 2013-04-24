@@ -4,7 +4,6 @@ import org.specs2.mutable.Specification
 import utils.ThreadUtils
 import scala.concurrent.duration._
 import org.specs2.time.NoTimeConversions
-import com.sun.javafx.pgstub.StubStage
 import scala.collection.JavaConverters._
 import com.sun.javafx.tk.TKStage
 import com.sun.javafx.application.PlatformImpl
@@ -13,6 +12,7 @@ import java.util.concurrent.CountDownLatch
 import ee.ui.implementation.StubToolkit
 import org.specs2.specification.Example
 import org.specs2.execute.AsResult
+import test.toolkit.StubStage
 
 class DefaultPlatformImplementationTest extends Specification with ThreadUtils with NoTimeConversions with StubToolkit with Mockito {
 
