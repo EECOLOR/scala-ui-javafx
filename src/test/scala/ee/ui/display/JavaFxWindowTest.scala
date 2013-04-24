@@ -15,6 +15,7 @@ import ee.ui.implementation.contracts.WindowContract
 import org.mockito.{ Mockito => MockitoLibrary }
 import ee.ui.implementation.DefaultContractHandlers
 import ee.ui.implementation.SpyContractHandlers
+import java.security.AccessControlContext
 
 class JavaFxWindowTest extends Specification with StubToolkit with Mockito {
   
@@ -34,7 +35,7 @@ class JavaFxWindowTest extends Specification with StubToolkit with Mockito {
     
     "call the toolkit to create a TK representation" resetToolkitMock {
       javaFxWindow.internalWindow must beAnInstanceOf[TKStage]
-      there was one(stubToolkitMock).createTKStage(StageStyle.DECORATED, true, Modality.NONE, null)
+      there was one(stubToolkitMock).createTKStage(StageStyle.DECORATED, true, Modality.NONE, null, true)
     }
     
     "have a show method which should" in {
@@ -55,6 +56,10 @@ class JavaFxWindowTest extends Specification with StubToolkit with Mockito {
         javaFxWindow.hide()
         there was one(javaFxWindow.internalWindow).setVisible(false)
       }
+    }
+    
+    "call internalWindow.setSecurityContext" in {
+      there was one(javaFxWindow.internalWindow).setSecurityContext(any[AccessControlContext])
     }
     
     "make a call to setTitle of the stage" in {

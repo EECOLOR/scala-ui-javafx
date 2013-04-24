@@ -18,7 +18,7 @@ abstract class JavaFxNode(node: NodeContract, val internalNode: PGNode) {
 
   def boundsTransformed(bounds: Bounds) = {
     val fxBounds = Converter convert bounds
-    internalNode setTransformedBounds fxBounds
+    internalNode setTransformedBounds (fxBounds, true)
   }
 
   val bindToNode: Unit = {

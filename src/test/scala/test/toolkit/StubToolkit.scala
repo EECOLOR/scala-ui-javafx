@@ -11,6 +11,7 @@ import javafx.scene.paint.Color
 import javafx.scene.paint.Paint
 import com.sun.javafx.sg.PGText
 import com.sun.javafx.tk.FontLoader
+import com.sun.javafx.scene.text.TextLayoutFactory
 
 object StubToolkit extends StubToolkit {
   def setFxUserThread(t: Thread) = Toolkit.setFxUserThread(t)
@@ -28,9 +29,9 @@ class StubToolkit extends Toolkit with Mockito {
 
   def startup(r: Runnable): Unit = {
     shadowMock startup r
-    
+
     if (started.getAndSet(true)) throw new RuntimeException("Can not start, already started, call exit first")
-    
+
     applicationThread run {
       StubToolkit.setFxUserThread(Thread.currentThread)
       r.run
@@ -39,7 +40,7 @@ class StubToolkit extends Toolkit with Mockito {
 
   def defer(r: Runnable): Unit = {
     shadowMock defer r
-    
+
     applicationThread run {
       r.run
     }
@@ -47,38 +48,48 @@ class StubToolkit extends Toolkit with Mockito {
 
   override def exit() = {
     shadowMock.exit()
-    
+
     super.exit()
     started.set(false)
   }
 
   def createTKStage(
-      stageStyle: StageStyle, 
-      primary: Boolean, 
-      modality: Modality, 
-      ownerStage: TKStage): TKStage = {
-    shadowMock.createTKStage(stageStyle, primary, modality, ownerStage)
-    
+    stageStyle: StageStyle,
+    primary: Boolean,
+    modality: Modality,
+    ownerStage: TKStage,
+    leftToRight:Boolean): TKStage = {
+    shadowMock.createTKStage(stageStyle, primary, modality, ownerStage, leftToRight)
+
     spy(new StubStage)
   }
 
   def createPGRectangle(): PGRectangle = {
     shadowMock.createPGRectangle()
-    spy(new StubRectangle) 
+    spy(new StubRectangle)
   }
-  
+
   def createPGText(): PGText = {
-      shadowMock.createPGText()
-      spy(new StubText) 
+    shadowMock.createPGText()
+    spy(new StubText)
   }
-  
-  case class InternalPaint(paint:Paint)
-  
+
+  case class InternalPaint(paint: Paint)
+
   protected def createColorPaint(color: Color): Object = InternalPaint(color)
-  
-  def getFontLoader(): FontLoader = spy(new StubFontLoader)
-  
-  
+
+  def getFontLoader(): FontLoader = {
+    shadowMock.getFontLoader()
+    spy(new StubFontLoader)
+  }
+
+  val textLayoutFactory = spy(new StubTextLayoutFactory)
+
+  def getTextLayoutFactory(): TextLayoutFactory = {
+    shadowMock.getTextLayoutFactory()
+    textLayoutFactory
+  }
+
   def waitFor(x$1: com.sun.javafx.tk.Toolkit.Task): Unit = ???
 
   def enterNestedEventLoop(x$1: Any): Object = ???
@@ -86,22 +97,14 @@ class StubToolkit extends Toolkit with Mockito {
 
   def accumulateStrokeBounds(x$1: com.sun.javafx.geom.Shape, x$2: Array[Float], x$3: com.sun.javafx.sg.PGShape.StrokeType, x$4: Double, x$5: com.sun.javafx.sg.PGShape.StrokeLineCap, x$6: com.sun.javafx.sg.PGShape.StrokeLineJoin, x$7: Float, x$8: com.sun.javafx.geom.transform.BaseTransform): Unit = ???
 
-  def convertDragRecognizedEventToFX(x$1: Any, x$2: javafx.scene.input.Dragboard): javafx.scene.input.DragEvent = ???
-  def convertDragSourceEventToFX(x$1: Any, x$2: javafx.scene.input.Dragboard): javafx.scene.input.DragEvent = ???
-  def convertDropTargetEventToFX(x$1: Any, x$2: javafx.scene.input.Dragboard): javafx.scene.input.DragEvent = ???
   def convertHitInfoToFX(x$1: Any): com.sun.javafx.scene.text.HitInfo = ???
-  def convertInputMethodEventToFX(x$1: Any): javafx.scene.input.InputMethodEvent = ???
-  def convertKeyEventToFX(x$1: Any): javafx.scene.input.KeyEvent = ???
-  def convertMouseEventToFX(x$1: Any): javafx.scene.input.MouseEvent = ???
   def convertShapeToFXPath(x$1: Any): Array[javafx.scene.shape.PathElement] = ???
 
   protected def createImagePatternPaint(x$1: javafx.scene.paint.ImagePattern): Object = ???
   protected def createLinearGradientPaint(x$1: javafx.scene.paint.LinearGradient): Object = ???
   protected def createRadialGradientPaint(x$1: javafx.scene.paint.RadialGradient): Object = ???
 
-  def createDragboard(): javafx.scene.input.Dragboard = ???
   def enableDrop(x$1: com.sun.javafx.tk.TKScene, x$2: com.sun.javafx.tk.TKDropTargetListener): Unit = ???
-  def startDrag(x$1: Any, x$2: java.util.Set[javafx.scene.input.TransferMode], x$3: com.sun.javafx.tk.TKDragSourceListener, x$4: javafx.scene.input.Dragboard): Unit = ???
 
   def createPGArc(): com.sun.javafx.sg.PGArc = ???
   def createPGCanvas(): com.sun.javafx.sg.PGCanvas = ???
@@ -111,16 +114,12 @@ class StubToolkit extends Toolkit with Mockito {
   def createPGGroup(): com.sun.javafx.sg.PGGroup = ???
   def createPGImageView(): com.sun.javafx.sg.PGImageView = ???
   def createPGLine(): com.sun.javafx.sg.PGLine = ???
-  def createPGMediaView(): com.sun.javafx.sg.PGMediaView = ???
   def createPGPath(): com.sun.javafx.sg.PGPath = ???
   def createPGPolygon(): com.sun.javafx.sg.PGPolygon = ???
   def createPGPolyline(): com.sun.javafx.sg.PGPolyline = ???
   def createPGQuadCurve(): com.sun.javafx.sg.PGQuadCurve = ???
   def createPGRegion(): com.sun.javafx.sg.PGRegion = ???
   def createPGSVGPath(): com.sun.javafx.sg.PGSVGPath = ???
-
-  def createParallelCamera(): com.sun.javafx.geom.ParallelCameraImpl = ???
-  def createPerspectiveCamera(): com.sun.javafx.geom.PerspectiveCameraImpl = ???
 
   def createPerformanceTracker(): com.sun.javafx.perf.PerformanceTracker = ???
   def getMasterTimer(): com.sun.scenario.animation.AbstractMasterTimer = ???
@@ -149,7 +148,6 @@ class StubToolkit extends Toolkit with Mockito {
   def getContextMap(): java.util.Map[Object, Object] = ???
   def getFilterContext(x$1: Any): com.sun.scenario.effect.FilterContext = ???
 
-
   def getKeyCodeForChar(x$1: String): Int = ???
 
   def getMaximumCursorColors(): Int = ???
@@ -160,8 +158,6 @@ class StubToolkit extends Toolkit with Mockito {
 
   def getNamedClipboard(x$1: String): com.sun.javafx.tk.TKClipboard = ???
   def getSystemClipboard(): com.sun.javafx.tk.TKClipboard = ???
-
-  def getPlatformShortcutKey(): javafx.scene.input.KeyCode = ???
 
   def getPrimaryScreen(): Object = ???
   def getRefreshRate(): Int = ???
@@ -185,7 +181,23 @@ class StubToolkit extends Toolkit with Mockito {
   def setAnimationRunnable(x$1: com.sun.scenario.DelayedRunnable): Unit = ???
 
   def showDirectoryChooser(x$1: com.sun.javafx.tk.TKStage, x$2: String, x$3: java.io.File): java.io.File = ???
-  def showFileChooser(x$1: com.sun.javafx.tk.TKStage, x$2: String, x$3: java.io.File, x$4: com.sun.javafx.tk.FileChooserType, x$5: java.util.List[javafx.stage.FileChooser.ExtensionFilter]): java.util.List[java.io.File] = ???
+
+  def closeAppletWindow(): Unit = ???
+  def createAppletWindow(x$1: Long, x$2: String): com.sun.javafx.tk.AppletWindow = ???
+  def createPGAmbientLight(): com.sun.javafx.sg.PGAmbientLight = ???
+  def createPGBox(): com.sun.javafx.sg.PGBox = ???
+  def createPGCylinder(): com.sun.javafx.sg.PGCylinder = ???
+  def createPGExternalNode(): com.sun.javafx.sg.PGExternalNode = ???
+  def createPGMeshView(): com.sun.javafx.sg.PGMeshView = ???
+  def createPGParallelCamera(): com.sun.javafx.sg.PGParallelCamera = ???
+  def createPGPerspectiveCamera(x$1: Boolean): com.sun.javafx.sg.PGPerspectiveCamera = ???
+  def createPGPhongMaterial(): com.sun.javafx.sg.PGPhongMaterial = ???
+  def createPGPointLight(): com.sun.javafx.sg.PGPointLight = ???
+  def createPGSphere(): com.sun.javafx.sg.PGSphere = ???
+  def createPGSubScene(): com.sun.javafx.sg.PGSubScene = ???
+  def createPGTriangleMesh(): com.sun.javafx.sg.PGTriangleMesh = ???
+  def showFileChooser(x$1: com.sun.javafx.tk.TKStage, x$2: String, x$3: java.io.File, x$4: String, x$5: com.sun.javafx.tk.FileChooserType, x$6: java.util.List[javafx.stage.FileChooser.ExtensionFilter]): java.util.List[java.io.File] = ???
+  def startDrag(x$1: com.sun.javafx.tk.TKScene, x$2: java.util.Set[javafx.scene.input.TransferMode], x$3: com.sun.javafx.tk.TKDragSourceListener, x$4: javafx.scene.input.Dragboard): Unit = ???
 
 }
 

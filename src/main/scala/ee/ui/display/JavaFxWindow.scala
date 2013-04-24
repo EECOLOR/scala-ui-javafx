@@ -13,6 +13,7 @@ import ee.ui.members.Property
 import javafx.stage.Modality
 import javafx.stage.StageStyle
 import scala.reflect.ClassTag
+import java.security.AccessController
 
 case class JavaFxWindow(contract: WindowContract)(implicit contractHandlers: ContractHandlers) extends Toolkit {
 
@@ -38,11 +39,16 @@ case class JavaFxWindow(contract: WindowContract)(implicit contractHandlers: Con
     def closed(): Unit = ???
     def closing(): Unit = ???
     def focusUngrab(): Unit = ???
+    def changedMaximized(x$1: Boolean): Unit = ???
+    def initAccessibleTKStageListener(x$1: Long): Unit = ???
+
   }
 
-  val internalWindow: TKStage = toolkit.createTKStage(StageStyle.DECORATED, true, Modality.NONE, null)
+  val internalWindow: TKStage = toolkit.createTKStage(StageStyle.DECORATED, true, Modality.NONE, null, true)
 
-  val bindToWindow:Unit = {
+  val bindToWindow: Unit = {
+
+    internalWindow.setSecurityContext(AccessController.getContext)
     
     window.title foreach internalWindow.setTitle
 
@@ -60,8 +66,8 @@ case class JavaFxWindow(contract: WindowContract)(implicit contractHandlers: Con
       contractHandlers.scenes(this -> scene).internalScene
 
     def setScene(scene: SceneContract) = internalWindow setScene internalScene(scene)
-    def removeScene(scene:SceneContract) = contractHandlers.scenes.removeContract(this -> scene)
-    
+    def removeScene(scene: SceneContract) = contractHandlers.scenes.removeContract(this -> scene)
+
     window.scene foreach setScene
 
     window.scene.valueChange {

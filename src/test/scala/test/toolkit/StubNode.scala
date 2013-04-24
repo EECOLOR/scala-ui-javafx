@@ -7,8 +7,9 @@ import com.sun.javafx.geom.BaseBounds
 class StubNode extends PGNode {
 
   def setTransformMatrix(matrix: BaseTransform): Unit = {}
-  def setTransformedBounds(bounds: BaseBounds): Unit = {}
-  
+  def setTransformedBounds(bounds: BaseBounds, byTransformChangeOnly: Boolean): Unit = {}
+
+  def release(): Unit = ??? 
   def effectChanged(): Unit = ???
   def setCachedAsBitmap(x$1: Boolean, x$2: com.sun.javafx.sg.PGNode.CacheHint): Unit = ???
   def setClipNode(x$1: com.sun.javafx.sg.PGNode): Unit = ???

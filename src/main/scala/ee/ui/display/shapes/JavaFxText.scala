@@ -17,24 +17,30 @@ import javafx.scene.text.TextBoundsType
 import javafx.scene.text.FontSmoothingType
 import ee.ui.implementation.Converter
 import ee.ui.primitives.VerticalPosition
+import ee.ui.implementation.Toolkit
 
 class JavaFxText(text:TextContract, override val internalNode: PGText = toolkit.createPGText()) extends 
-  JavaFxShape(text, internalNode) {
+  JavaFxShape(text, internalNode) with Toolkit {
 
-  val helper = internalNode.getTextHelper
+  val layout = toolkit.getTextLayoutFactory.createLayout
+  
+  def font = Font.getDefault.impl_getNativeFont
+  def setText(text:String) = layout.setContent(text, font)
+  def getGlyphs() = layout.getRuns.asInstanceOf[Array[Object]]
   
   val bindToText:Unit = {
-    text.text bindWith helper.setText
-    text.textAlignment bindWith (helper setTextAlignment _)
-    text.textOrigin bindWith (helper setTextOrigin _)
+    
+    text.text bindWith setText
+    text.textAlignment bindWith (layout setAlignment _)
    
-    (text.text.change | text.textAlignment.change | text.textOrigin.change) {
-      internalNode.updateText()
+    (text.text.change | text.textAlignment.change) {
       boundsTransformed(text.bounds)
+      internalNode.setGlyphs(getGlyphs)
       dirty = true
     }
     
-    internalNode.updateText()
+    internalNode.setFont(font)
+    internalNode.setGlyphs(getGlyphs)
   }
   
   implicit def textAlignmentToInt(textAlignment: TextAlignment): Int =
@@ -45,10 +51,4 @@ class JavaFxText(text:TextContract, override val internalNode: PGText = toolkit.
       case TextAlignment.RIGHT => JavaFxTextAlignment.RIGHT
     }).ordinal
     
-  implicit def textOriginToInt(textOrigin: VerticalPosition): Int =
-    (textOrigin match {
-      case VerticalPosition.TOP => VPos.TOP
-      case VerticalPosition.CENTER => VPos.CENTER
-      case VerticalPosition.BOTTOM => VPos.BOTTOM
-    }).ordinal
 }

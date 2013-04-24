@@ -5,6 +5,7 @@ import ee.ui.implementation.WindowImplementationHandler
 import ee.ui.implementation.ExitHandler
 import ee.ui.implementation.JavaFxWindowHandler
 import ee.ui.implementation.DefaultContractHandlers
+import ee.ui.implementation.JavaFxTextHelper
 
 abstract class JavaFxApplicationLauncher extends ApplicationLauncher with JavaFxLauncher {
   
@@ -21,5 +22,7 @@ abstract class JavaFxApplicationLauncher extends ApplicationLauncher with JavaFx
     val exitHandler = JavaFxApplicationLauncher.this
     
     val settings = new ApplicationSettings
+    
+    val textHelper = new JavaFxTextHelper
   }
 }

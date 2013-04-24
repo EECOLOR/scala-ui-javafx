@@ -7,7 +7,6 @@ import utils.SignatureTest
 import com.sun.javafx.sg.PGNode
 import ee.ui.display.implementation.contracts.NodeContract
 import ee.ui.display.shapes.Rectangle
-import com.sun.javafx.pgstub.StubNode
 import ee.ui.members.Signal
 import ee.ui.implementation.StubToolkit
 import org.specs2.mock.Mockito
@@ -26,6 +25,7 @@ import ee.ui.display.traits.Translation
 import ee.ui.primitives.Point
 import ee.ui.members.ReadOnlyEvent
 import ee.ui.system.RestrictedAccess
+import test.toolkit.StubNode
 
 class JavaFxNodeTest extends Specification with Mockito {
 
@@ -110,7 +110,7 @@ class JavaFxNodeTest extends Specification with Mockito {
       node.height = height1
       val b1 = Bounds(1, 2, 4, 6)
 
-      there was one(internalNode).setTransformedBounds(Converter convert b1)
+      there was one(internalNode).setTransformedBounds(Converter convert b1, true)
 
       val (x2, y2, width2, height2) = (2, 3, 4, 5)
 
@@ -120,7 +120,7 @@ class JavaFxNodeTest extends Specification with Mockito {
       node.height = height2
       val b2 = Bounds(2, 3, 6, 8)
 
-      there was one(internalNode).setTransformedBounds(Converter convert b2)
+      there was one(internalNode).setTransformedBounds(Converter convert b2, true)
     }
   }
 }

@@ -13,6 +13,8 @@ import ee.ui.implementation.JavaFxNodeHandler
 import ee.ui.display.shapes.JavaFxRectangle
 import ee.ui.display.implementation.contracts.NodeContract
 import ee.ui.display.implementation.contracts.RectangleContract
+import java.security.AccessController
+import java.security.AccessControlContext
 
 class JavaFxSceneTest extends Specification with Mockito {
 
@@ -43,11 +45,15 @@ class JavaFxSceneTest extends Specification with Mockito {
       there was one(owner.internalWindow).createTKScene(false)
     }
 
-    "call internalScebe.setCamera" in {
+    "call internalScene.setCamera" in {
       // the default camera will only be initialized if this method is called
       there was one(javaFxScene.internalScene).setCamera(null)
     }
 
+    "call internalScene.setSecurityContext" in {
+      there was one(javaFxScene.internalScene).setSecurityContext(any[AccessControlContext])
+    }
+    
     "call internalScene.setTKSceneListener" in {
       there was one(javaFxScene.internalScene).setTKSceneListener(any)
     }
